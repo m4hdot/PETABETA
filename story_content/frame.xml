@@ -13,7 +13,7 @@
         <options>
           <option name="title_enabled" value="false">
             <options>
-              <option name="title_text" value="Project Permainan Tradisional FIX" />
+              <option name="title_text" value="Permainan Tradisional Etnik Betawi" />
             </options>
           </option>
           <option name="logo_enabled" value="false">
@@ -80,7 +80,7 @@
       </optiongroup>
       <optiongroup name="bottombaroptions">
         <options>
-          <option name="bottombar_enabled" value="true" />
+          <option name="bottombar_enabled" value="false" />
         </options>
       </optiongroup>
     </optiongroups>
@@ -1297,7 +1297,11 @@
             <slidelink slideid="_player.5f7ofbjKCiA.6O4wTOaqQ2A" displaytext="Video Jangkungan" expand="false" type="slide" />
             <slidelink slideid="_player.5f7ofbjKCiA.5kK0DZ5sFbK" displaytext="Video Congklak" expand="false" type="slide" />
             <slidelink slideid="_player.5f7ofbjKCiA.6M411PyQ5mZ" displaytext="KUIS" expand="false" type="slide" />
+            <slidelink slideid="_player.5f7ofbjKCiA.6PRnWbMlG2i" displaytext="KUIS New" expand="false" type="slide" />
             <slidelink slideid="_player.5f7ofbjKCiA.66csYOiCOYz" displaytext="GAME" expand="false" type="slide" />
+            <slidelink slideid="_player.5f7ofbjKCiA.6PUo4VEED3Y" displaytext="Menu Game" expand="false" type="slide" />
+            <slidelink slideid="_player.5f7ofbjKCiA.5eCZl9kx3Sf" displaytext="Galasin Inter" expand="false" type="slide" />
+            <slidelink slideid="_player.5f7ofbjKCiA.5rr7P62hOEm" displaytext="Jangkungan Inter" expand="false" type="slide" />
             <slidelink slideid="_player.5f7ofbjKCiA.6EiKk8XQfls" displaytext="Galasin 1" expand="false" type="slide" />
             <slidelink slideid="_player.5f7ofbjKCiA.6hEjDG3Aaxt" displaytext="Galasin 2" expand="false" type="slide" />
             <slidelink slideid="_player.5f7ofbjKCiA.5vykziAaJ5w" displaytext="Galasin 3" expand="false" type="slide" />

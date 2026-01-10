@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Permainan Tradisional Etnik Betawi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #FFF7ED;
+            /* Kita hilangkan overflow: hidden agar bisa scroll jika konten sangat panjang di layar kecil */
+        }
+        
+        .animate-bounce-slow {
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+            50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+        }
+        .hidden-view {
+            display: none !important;
+        }
+        .choice-btn:active {
+            transform: scale(0.98);
+        }
+        .session-card {
+            transition: all 0.3s ease;
+        }
+        .session-card.locked {
+            filter: grayscale(1);
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .session-card:not(.locked):hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+        #feedback-overlay {
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        /* Motif Batik Betawi */
+        .betawi-pattern {
+            background-image: url('latar.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-8 betawi-pattern">
+
+    <!-- BAGIAN 1: TAG AUDIO UNTUK BACKSOUND LOKAL -->
+    <!-- Ganti 'nama_file_musik_kamu.mp3' dengan nama file musik yang ada di folder yang sama -->
+    <audio id="bgMusic" loop>
+        <source src="backsound.mp3" type="audio/mpeg">
+        Browser Anda tidak mendukung elemen audio.
+    </audio>
+
+    <!-- Feedback Overlay -->
+    <div id="feedback-overlay" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 scale-50 transition-all duration-300 pointer-events-none">
+        <div id="feedback-card" class="bg-white p-12 rounded-[3rem] shadow-2xl border-8 flex flex-col items-center max-w-lg">
+            <div id="feedback-icon" class="mb-6"></div>
+            <h2 id="feedback-text" class="text-5xl font-black"></h2>
+            <p id="feedback-subtext" class="text-slate-500 font-bold mt-4 text-xl text-center"></p>
+        </div>
+    </div>
+
+    <!-- Main Container: Lebar 80% -->
+    <div id="quiz-container" class="w-[80%] min-h-[70vh] bg-white rounded-[3rem] shadow-[0_30px_60px_rgba(0,0,0,0.12)] border-[14px] border-white relative flex flex-col overflow-hidden">
+        
+        <!-- Siluet Monas Decor -->
+        <div class="absolute bottom-0 right-10 opacity-10 pointer-events-none">
+            <svg width="200" height="500" viewBox="0 0 100 300" fill="#ea580c" xmlns="http://www.w3.org/2000/svg">
+                <rect x="45" y="50" width="10" height="200" />
+                <path d="M30 250 L70 250 L80 280 L20 280 Z" />
+                <path d="M40 50 L60 50 L55 20 L45 20 Z" />
+            </svg>
+        </div>
+
+        <!-- VIEW 1: MENU SESI -->
+        <div id="view-start" class="flex-grow flex flex-col items-center justify-center z-10 p-12 text-center animate-in fade-in zoom-in duration-500">
+            <div class="mb-6">
+                <span class="bg-orange-600 text-white px-6 py-2 rounded-full text-sm font-black uppercase tracking-widest">Permainan Tradisional</span>
+            </div>
+            <h1 class="text-6xl font-black text-slate-800 tracking-tighter uppercase mb-4">KUIS <span class="text-orange-600">Sikap Sosial</span></h1>
+            <p class="text-2xl text-slate-400 font-bold mb-12 italic">Mari belajar 5 Sikap Sosial melalui Kuis berikut ini!</p>
+            
+            <div class="grid grid-cols-3 gap-8 w-full max-w-6xl">
+                <!-- Sesi 1 Card -->
+                <div onclick="initSession(1)" class="session-card bg-orange-50 p-8 rounded-[3rem] border-4 border-orange-200 cursor-pointer flex flex-col items-center">
+                    <div class="bg-orange-500 text-white p-6 rounded-2xl mb-4 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-black text-3xl text-orange-700 uppercase">Sesi I</h3>
+                    <p class="text-lg font-bold text-slate-500 uppercase tracking-widest mt-1">Galasin</p>
+                    <span class="mt-6 bg-orange-200 text-orange-700 text-sm px-4 py-2 rounded-full font-black uppercase">Terbuka</span>
+                </div>
+
+                <!-- Sesi 2 Card -->
+                <div id="card-session-2" onclick="initSession(2)" class="session-card locked bg-green-50 p-8 rounded-[3rem] border-4 border-green-200 flex flex-col items-center">
+                    <div class="bg-green-600 text-white p-6 rounded-2xl mb-4 relative shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 3m0 0a10.003 10.003 0 0110 10c0 1.053-.163 2.067-.464 3.023m-4.133 4.393L13.194 13m0 0l-5.462 5.463" />
+                        </svg>
+                        <div id="lock-icon-2" class="absolute -top-2 -right-2 bg-slate-800 p-2 rounded-full border-2 border-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                        </div>
+                    </div>
+                    <h3 class="font-black text-3xl text-green-700 uppercase">Sesi II</h3>
+                    <p class="text-lg font-bold text-slate-500 uppercase tracking-widest mt-1">Jangkungan</p>
+                    <span id="badge-session-2" class="mt-6 bg-slate-200 text-slate-500 text-sm px-4 py-2 rounded-full font-black uppercase">Terkunci</span>
+                </div>
+
+                <!-- Sesi 3 Card -->
+                <div id="card-session-3" onclick="initSession(3)" class="session-card locked bg-yellow-50 p-8 rounded-[3rem] border-4 border-yellow-200 flex flex-col items-center">
+                    <div class="bg-yellow-500 text-white p-6 rounded-2xl mb-4 relative shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div id="lock-icon-3" class="absolute -top-2 -right-2 bg-slate-800 p-2 rounded-full border-2 border-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                        </div>
+                    </div>
+                    <h3 class="font-black text-3xl text-yellow-700 uppercase">Sesi III</h3>
+                    <p class="text-lg font-bold text-slate-500 uppercase tracking-widest mt-1">Congklak</p>
+                    <span id="badge-session-3" class="mt-6 bg-slate-200 text-slate-500 text-sm px-4 py-2 rounded-full font-black uppercase">Terkunci</span>
+                </div>
+            </div>
+            
+            <button onclick="showView('view-instructions')" class="mt-12 text-orange-600 hover:text-orange-700 font-black text-lg uppercase tracking-widest flex items-center gap-3 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Info Cara Bermain
+            </button>
+        </div>
+
+        <!-- VIEW 2: PETUNJUK -->
+        <div id="view-instructions" class="flex-grow flex flex-col items-center justify-center z-10 p-12 text-center hidden-view animate-in fade-in zoom-in duration-500">
+            <div class="bg-orange-600 text-white p-5 rounded-3xl mb-6 shadow-lg rotate-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h1 class="text-4xl font-black text-slate-800 mb-8 uppercase tracking-tight">Petunjuk Kuis</h1>
+            
+            <div class="flex flex-col gap-4 w-full max-w-3xl text-left mb-10">
+                <div class="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm flex items-start gap-6">
+                    <div class="bg-orange-500 text-white font-black text-2xl w-12 h-12 flex items-center justify-center rounded-2xl shrink-0 shadow-md">1</div>
+                    <div>
+                        <p class="font-black text-slate-700 text-xl leading-tight">Jawab kuis sesuai sikap sosial yang baik!</p>
+                        <p class="text-slate-500 font-bold text-base mt-1 italic">Sikap: Jujur, Disiplin, Tanggung Jawab, Peduli, Kerjasama.</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm flex items-start gap-6">
+                    <div class="bg-pink-500 text-white font-black text-2xl w-12 h-12 flex items-center justify-center rounded-2xl shrink-0 shadow-md">2</div>
+                    <div>
+                        <p class="font-black text-slate-700 text-xl leading-tight">Periksa Jawaban</p>
+                        <p class="text-slate-500 font-bold text-base mt-1 italic">Pilih satu jawaban terbaik, lalu klik tombol periksa jawaban.</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm flex items-start gap-6">
+                    <div class="bg-green-500 text-white font-black text-2xl w-12 h-12 flex items-center justify-center rounded-2xl shrink-0 shadow-md">3</div>
+                    <div>
+                        <p class="font-black text-slate-700 text-xl leading-tight">Raih Nilai 70</p>
+                        <p class="text-slate-500 font-bold text-base mt-1 italic">Untuk membuka sesi selanjutnya, nilaimu harus lebih dari 70.</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="showView('view-start')" class="bg-slate-900 text-white px-16 py-6 rounded-full font-black text-xl shadow-xl hover:bg-orange-600 transition-all active:scale-95 uppercase">
+                Tutup Petunjuk
+            </button>
+        </div>
+
+        <!-- VIEW 3: KUIS -->
+        <div id="view-quiz" class="flex-grow flex flex-col z-10 p-12 hidden-view">
+            <div class="flex justify-between items-center mb-10">
+                <button onclick="goBackToMenu()" class="flex items-center gap-3 text-slate-400 hover:text-orange-600 font-black text-sm transition-colors uppercase">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                    MENU SESI
+                </button>
+                <div class="flex items-center gap-8">
+                    <div id="session-badge" class="bg-orange-600 text-white px-8 py-3 rounded-2xl font-black text-sm shadow-lg uppercase tracking-widest">Sesi I</div>
+                    <div id="question-counter" class="text-slate-400 font-black text-sm uppercase tracking-widest">Soal 1 / 10</div>
+                </div>
+                <div class="w-64 h-4 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                    <div id="progress-bar" class="h-full bg-orange-500 rounded-full transition-all duration-500" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <div class="flex-grow flex flex-col justify-center px-16">
+                <h2 id="question-text" class="text-4xl font-black text-slate-700 leading-snug mb-12 text-center italic">"Memuat pertanyaan..."</h2>
+                <div id="options-container" class="grid grid-cols-2 gap-6">
+                    <!-- Opsi Jawaban akan dirender di sini -->
+                </div>
+            </div>
+
+            <div class="mt-12 flex justify-end px-16">
+                <button id="btn-check" onclick="handleCheckAnswer()" class="flex items-center gap-4 px-14 py-6 rounded-3xl font-black text-2xl transition-all bg-slate-100 text-slate-300 cursor-not-allowed shadow-md uppercase" disabled>
+                    Periksa Jawaban
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 4: HASIL SESI -->
+        <div id="view-session-result" class="flex-grow flex flex-col items-center justify-center z-10 p-12 text-center hidden-view">
+            <div class="mb-6 relative">
+                <div class="bg-orange-50 p-8 rounded-full mb-4 animate-bounce-slow shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 text-orange-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                </div>
+                <div id="status-tag" class="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-black px-6 py-3 rounded-full shadow-xl uppercase tracking-widest">Selesai!</div>
+            </div>
+            <h2 class="text-xl font-bold text-slate-400 uppercase tracking-widest">Nilai Sesi Ini</h2>
+            <div id="session-score-text" class="text-9xl font-black text-slate-800 mb-6 tracking-tighter">0</div>
+            <div class="bg-orange-50 px-10 py-6 rounded-[2.5rem] border-2 border-orange-100 mb-10 max-w-2xl">
+                <p id="session-feedback" class="text-orange-800 font-bold italic text-xl text-center">Luar biasa!</p>
+            </div>
+            <button onclick="unlockNextAndMenu()" class="bg-slate-900 text-white px-14 py-6 rounded-full font-black text-xl shadow-xl hover:bg-orange-600 transition-all active:scale-95 uppercase tracking-wide">
+                Kembali ke Menu Sesi
+            </button>
+        </div>
+
+        <!-- VIEW 5: HASIL AKHIR -->
+        <div id="view-final-result" class="flex-grow flex flex-col items-center justify-center z-10 p-12 text-center hidden-view">
+            <div class="absolute top-0 w-full h-4 bg-gradient-to-r from-orange-500 via-pink-400 to-green-500"></div>
+            <div class="flex items-center gap-12 mb-10">
+                <div class="bg-yellow-100 p-8 rounded-full animate-bounce">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 text-yellow-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V19H7v2h10v-2h-4v-3.1c2.45-.39 4.39-2.47 4.39-4.94V7c0-1.1-.9-2-2-2zM5 7h2v3H5V7zm14 3h-2V7h2v3z"/></svg>
+                </div>
+                <div class="text-left">
+                    <h2 class="text-2xl font-black text-slate-400 uppercase tracking-tight">Nilai Karakter Kamu</h2>
+                    <div id="final-score-text" class="text-[10rem] font-black text-slate-800 tracking-tighter leading-none">0</div>
+                </div>
+            </div>
+            <div class="max-w-4xl bg-white p-10 rounded-[3rem] border-4 border-dashed border-orange-100 mb-12 relative shadow-sm">
+                <p id="final-feedback" class="text-2xl text-slate-600 leading-relaxed font-bold italic text-center">Evaluasi final...</p>
+            </div>
+            <div class="flex gap-6">
+                <button onclick="location.reload()" class="bg-orange-600 text-white px-14 py-6 rounded-full font-black text-xl shadow-xl hover:bg-orange-700 transition-all active:scale-95 uppercase tracking-wide">Ulangi Kuis</button>
+                <button onclick="goBackToMenu()" class="bg-slate-800 text-white px-14 py-6 rounded-full font-black text-xl shadow-xl hover:bg-slate-900 transition-all active:scale-95 uppercase tracking-wide">Menu Sesi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // BAGIAN 2: FUNGSI UNTUK MEMUTAR MUSIK LATAR
+        function startBackgroundMusic() {
+            const music = document.getElementById('bgMusic');
+            if (music.paused) {
+                music.play().catch(error => {
+                    console.log("Autoplay dicegah. Musik akan diputar saat klik pertama.");
+                });
+            }
+        }
+
+        function playBeep(frequency, duration, type = 'sine') {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + duration);
+        }
+
+        const questions = [
+            // SESI I: GALASIN
+            { q: "Dalam permainan galasin, pemain yang tertangkap boleh memprotes dengan keras", a: ["Setuju", "Tidak peduli", "Tidak setuju", "Ragu-ragu"], c: 2 },
+            { q: "Kaki lawan menyentuh tanganmu, tapi dia bilang tidak kena. Apa yang kamu lakukan sebagai penjaga?", a: ["Berdiam diri dan membiarkan dia lewat", "Menjelaskan dengan sopan bahwa sentuhan sudah terjadi", "Berteriak marah agar dia mengaku", "Berhenti main karena kesal"], c: 1 },
+            { q: "Kamu menjadi penjaga garis tengah. Apa upayamu dalam membantu teman di garis depan?", a: ["Hanya diam menunggu musuh di tengah", "Bergerak vertikal menutup celah lawan yang lolos", "Meninggalkan garis dan lari mengejar lawan", "Menertawakan teman yang gagal menjaga posnya"], c: 1 },
+            { q: "Rekan setimmu terjatuh saat lari menghindari penjaga. Apa tindakanmu?", a: ["Terus lari agar tim tetap menang", "Berhenti sebentar untuk membantunya berdiri", "Menyalahkan dia karena membuat tim terhambat", "Mengabaikannya agar penjaga tidak melihatmu"], c: 1 },
+            { q: "Timmu kalah dalam permainan Galasin. Sikap yang mencerminkan tanggung jawab bersama adalah?", a: ["Menerima kekalahan dan berlatih strategi lebih baik", "Menyalahkan penjaga garis yang kurang lincah", "Menuduh lawan melakukan kecurangan", "Membuang alat permainan karena kecewa"], c: 0 },
+            { q: "Kamu sebagai penyerang merasa tersentuh tangan penjaga di bagian punggung yang tidak terlihat wasit. Sikapmu?", a: ["Lanjut lari pura-pura tidak tahu", "Mengaku jujur dan keluar lapangan", "Bersembunyi di belakang teman", "Menyalahkan penjaga karena menyentuh terlalu keras"], c: 1 },
+            { q: "Penyerang Galasin Betawi harus lincah. Apa kunci agar tim bisa lewat sampai garis belakang?", a: ["Masing-masing lari sendiri-sendiri", "Saling memberi kode komunikasi dan melindungi", "Saling berebut menjadi yang paling depan", "Tidak peduli posisi rekan setim"], c: 1 },
+            { q: "Wasit menyatakan kamu 'mati' karena menginjak garis samping. Sikapmu adalah...", a: ["Menerima keputusan dan keluar lapangan", "Protes karena merasa tidak menginjak garis", "Marah kepada wasit", "Menghapus jejak kaki di tanah"], c: 0 },
+            { q: "Kamu dipilih menjadi kapten regu penjaga. Apa yang harus kamu lakukan?", a: ["Menyuruh teman bekerja keras sementara kamu diam", "Membagi posisi penjagaan dengan adil dan memberi arahan", "Hanya ingin menjaga garis yang paling mudah", "Menunjuk teman yang paling lemah untuk pos tersulit"], c: 1 },
+            { q: "Lawan bermain tampak kelelahan dan nafas tersengal-sengal. Sikap sportivitasmu?", a: ["Mempercepat serangan agar lawan makin lelah", "Mengusulkan jeda minum sejenak demi keselamatan", "Mengejek lawan yang fisiknya lemah", "Membiarkan saja karena itu masalah lawan"], c: 1 },
+
+            // SESI II: JANGKUNGAN
+            { q: "Bermain jangkungan membutuhkan latihan rutin. Sikap disiplin ditunjukkan dengan?", a: ["Hanya berlatih kalau mood sedang baik", "Latihan terjadwal meski gerakan masih sulit", "Menyerah kalau jatuh sekali", "Berlatih hanya saat ada guru"], c: 1 },
+            { q: "Bambu jangkungan milik sekolah yang kamu pinjam ternyata retak setelah dipakai. Sikapmu?", a: ["Menyembunyikannya di belakang gudang", "Melapor dan berusaha ikut memperbaikinya", "Meletakkan kembali seolah-olah sudah rusak dari awal", "Menyalahkan cuaca"], c: 1 },
+            { q: "Dalam lomba jangkungan, kakimu turun dari pijakan bambu tanpa terlihat oleh juri. Sikapmu?", a: ["Naik lagi dan lanjut lari secepat mungkin", "Berhenti dan mengakui kegagalan", "Pura-pura tersandung agar dikasihani", "Berteriak juri curang"], c: 1 },
+            { q: "Temanmu sering jatuh dan ditertawakan yang lain saat belajar jangkungan. Sikapmu?", a: ["Ikut tertawa agar dianggap kompak", "Mendekati dan memberi semangat serta tips", "Diam saja karena bukan urusanku", "Merekam videonya untuk lucu-lucuan"], c: 1 },
+            { q: "Saat bermain estafet jangkungan, rekanmu lambat menyerahkan bambu. Sikapmu?", a: ["Marah kepadanya di depan orang banyak", "Memberi semangat dan fokus mengejar ketertinggalan", "Meninggalkan lomba karena kesal", "Menyalahkan dia atas kekalahan tim"], c: 1 },
+            { q: "Setelah selesai bermain jangkungan, alat-alat harus dikembalikan. Tindakanmu?", a: ["Menaruh bambu di mana saja asal lepas", "Merapikan dan menata bambu di tempat semula", "Menunggu instruksi guru berulang kali", "Menyuruh teman kecil yang merapikan"], c: 1 },
+            { q: "Kamu mematahkan jangkungan teman secara tidak sengaja. Sikapmu?", a: ["Diam-diam menaruhnya kembali", "Mengaku jujur dan meminta maaf", "Bilang kalau bambunya sudah lapuk", "Menuduh orang lain yang lewat"], c: 1 },
+            { q: "Aturan main adalah dilarang menabrak peserta lain. Apa yang kamu lakukan?", a: ["Sengaja menabrak agar menang", "Menjaga keseimbangan dan jarak aman", "Mendorong lawan agar minggir", "Menutup jalan lawan secara kasar"], c: 1 },
+            { q: "Seorang teman tidak punya biaya untuk membeli bambu latihan. Sikap sosialmu?", a: ["Meminjamkan bambumu secara bergantian", "Menghina keadaannya", "Menyuruhnya tidak usah ikut main", "Mengabaikannya"], c: 0 },
+            { q: "Tim membutuhkan sorak-sorai penyemangat. Apa peranmu saat tidak bermain?", a: ["Pulang lebih awal", "Memberi teriakan semangat positif untuk tim", "Mengejek lawan agar metalnya jatuh", "Bermain HP sendiri"], c: 1 },
+
+            // SESI III: CONGKLAK
+            { q: "Kamu sadar jumlah biji di tanganmu sisa satu tapi kamu masukkan ke 'rumah' lawan agar ia rugi. Sikapmu?", a: ["Merasa bangga karena cerdik", "Mengakui kesalahan dan mengulang hitungan", "Lanjut main seolah tidak terjadi apa-apa", "Menyalahkan angin"], c: 1 },
+            { q: "Menunggu lawan menghitung biji Congklak terkadang lama. Sikapmu?", a: ["Mengetuk-ngetuk meja agar lawan gugup", "Menunggu dengan sabar dan tenang", "Merebut biji dari tangan lawan", "Meninggalkan permainan"], c: 1 },
+            { q: "Biji Congklak hilang satu karena kamu ceroboh. Apa tindakanmu?", a: ["Menggantinya dengan batu kerikil secara diam-diam", "Melapor pada pemilik dan berusaha mencarinya", "Pura-pura tidak tahu", "Membuang papan congklaknya sekalian"], c: 1 },
+            { q: "Lawan mainmu belum paham cara menghitung Congklak. Sikapmu?", a: ["Mengalahkannya secepat mungkin", "Mengajarkan aturan main dengan sabar", "Ejek karena dia kurang pintar", "Tinggalkan dia karena bosan"], c: 1 },
+            { q: "Congklak adalah permainan dua orang. Sikap kerjasama ditunjukkan dengan?", a: ["Saling menjaga kejujuran jalannya permainan", "Berebut ingin jalan pertama", "Saling menipu saat lawan lengah", "Tidak bicara sama sekali"], c: 0 },
+            { q: "Kamu melihat satu biji tertinggal di lubang yang seharusnya sudah kosong. Sikapmu?", a: ["Diam saja agar bisa diambil nanti", "Mengambilnya dan menyimpannya di tangan", "Memberitahu lawan agar lubang dikosongkan", "Membuangnya ke lantai"], c: 2 },
+            { q: "Bermain Congklak di jam sekolah saat guru tidak ada. Sikapmu?", a: ["Lanjut terus sampai bel istirahat habis", "Berhenti saat jam pelajaran dimulai", "Sembunyi di bawah meja", "Ajak guru ikut main"], c: 1 },
+            { q: "Wadah Congklak retak setelah kamu duduki. Sikapmu?", a: ["Menaruhnya di tumpukan paling bawah", "Mengaku jujur dan bertanggung jawab", "Bilang kalau bahannya memang jelek", "Menuduh kucing"], c: 1 },
+            { q: "Temanmu sedih karena selalu kalah main Congklak. Sikapmu?", a: ["Menertawakan kesedihannya", "Memberinya semangat dan tips strategi", "Bilang kalau dia memang tidak bakat", "Pamer semua biji kemenanganmu"], c: 1 },
+            { q: "Kamu menang mutlak karena lawan kurang teliti. Apakah kamu bangga?", a: ["Bangga karena sudah jujur sepanjang game", "Bangga karena sudah menipu lawan", "Bangga karena lawan memang bodoh", "Pura-pura kalah agar ia tidak sedih"], c: 0 }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let sessionScoreValue = 0;
+        let unlockedSessions = [1];
+        let activeSession = 1;
+        let isProcessing = false;
+
+        function showView(id) {
+            ['view-instructions', 'view-start', 'view-quiz', 'view-session-result', 'view-final-result'].forEach(vId => {
+                document.getElementById(vId).classList.add('hidden-view');
+            });
+            document.getElementById(id).classList.remove('hidden-view');
+            window.scrollTo(0,0);
+        }
+
+        function initSession(sessionNum) {
+            if (!unlockedSessions.includes(sessionNum)) return;
+            
+            // BAGIAN 3: TRIGGER MUSIK SAAT KLIK SESI PERTAMA KALI
+            startBackgroundMusic();
+
+            activeSession = sessionNum;
+            currentQuestionIndex = (sessionNum - 1) * 10;
+            renderQuestion();
+            showView('view-quiz');
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            const progressInSession = (currentQuestionIndex % 10) + 1;
+
+            document.getElementById('session-badge').textContent = `Sesi ${RomanNumeral(activeSession)}`;
+            document.getElementById('question-counter').textContent = `Soal ${progressInSession} / 10`;
+            document.getElementById('progress-bar').style.width = `${(progressInSession / 10) * 100}%`;
+            document.getElementById('question-text').textContent = q.q;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.a.forEach((option, idx) => {
+                const btn = document.createElement('button');
+                const isSelected = userAnswers[currentQuestionIndex] === idx;
+                
+                btn.className = `choice-btn p-8 rounded-[2rem] text-left font-bold text-xl transition-all border-4 flex items-center gap-6 shadow-sm ${isSelected ? 'bg-orange-600 border-orange-700 text-white shadow-lg translate-y-[-2px]' : 'bg-white border-slate-100 hover:border-orange-200 hover:bg-orange-50 text-slate-600'}`;
+                
+                const letterBox = document.createElement('div');
+                letterBox.className = `w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 font-black text-2xl ${isSelected ? 'bg-white text-orange-600' : 'bg-slate-100 text-slate-400'}`;
+                letterBox.textContent = String.fromCharCode(65 + idx);
+                
+                btn.appendChild(letterBox);
+                const textSpan = document.createElement('span');
+                textSpan.textContent = option;
+                btn.appendChild(textSpan);
+                
+                btn.onclick = () => selectAnswer(idx);
+                container.appendChild(btn);
+            });
+
+            updateCheckButton();
+        }
+
+        function RomanNumeral(num) {
+            const romans = ["", "I", "II", "III"];
+            return romans[num];
+        }
+
+        function selectAnswer(idx) {
+            if (isProcessing) return;
+            userAnswers[currentQuestionIndex] = idx;
+            renderQuestion();
+        }
+
+        function updateCheckButton() {
+            const btn = document.getElementById('btn-check');
+            const answered = userAnswers[currentQuestionIndex] !== undefined;
+            if (answered && !isProcessing) {
+                btn.disabled = false;
+                btn.className = "flex items-center gap-4 px-14 py-6 rounded-3xl font-black text-2xl transition-all bg-slate-900 text-white hover:bg-orange-600 shadow-xl active:scale-95 uppercase cursor-pointer";
+            } else {
+                btn.disabled = true;
+                btn.className = "flex items-center gap-4 px-14 py-6 rounded-3xl font-black text-2xl transition-all bg-slate-100 text-slate-300 cursor-not-allowed shadow-md uppercase";
+            }
+        }
+
+        function handleCheckAnswer() {
+            if (isProcessing) return;
+            isProcessing = true;
+            const selectedIdx = userAnswers[currentQuestionIndex];
+            const isCorrect = questions[currentQuestionIndex].c === selectedIdx;
+            showFeedback(isCorrect);
+            setTimeout(() => {
+                const isLastOfSession = (currentQuestionIndex + 1) % 10 === 0;
+                if (isLastOfSession) {
+                    calculateSessionScore();
+                } else {
+                    currentQuestionIndex++;
+                    renderQuestion();
+                }
+                isProcessing = false;
+            }, 1500);
+        }
+
+        function showFeedback(isCorrect) {
+            const overlay = document.getElementById('feedback-overlay');
+            const card = document.getElementById('feedback-card');
+            const text = document.getElementById('feedback-text');
+            const subtext = document.getElementById('feedback-subtext');
+            const icon = document.getElementById('feedback-icon');
+            
+
+            if (isCorrect) {
+                playBeep(880, 0.1);
+                setTimeout(() => playBeep(1320, 0.2), 100);
+                card.className = "bg-white p-16 rounded-[4rem] shadow-2xl border-8 border-green-500 flex flex-col items-center animate-bounce-slow";
+                text.textContent = "Benar!";
+                text.className = "text-6xl font-black text-green-600 uppercase tracking-tighter";
+                subtext.textContent = "Sikap Sosialmu keren!";
+                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+            } else {
+                playBeep(220, 0.3, 'sawtooth');
+                card.className = "bg-white p-16 rounded-[4rem] shadow-2xl border-8 border-red-500 flex flex-col items-center";
+                text.textContent = "Belum tepat!";
+                text.className = "text-6xl font-black text-red-600 uppercase tracking-tighter";
+                subtext.textContent = "Coba renungkan kembali sikap yang sesuai!";
+                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+            }
+            overlay.classList.remove('opacity-0', 'scale-50', 'pointer-events-none');
+            overlay.classList.add('opacity-100', 'scale-100');
+            setTimeout(() => {
+                overlay.classList.add('opacity-0', 'scale-50', 'pointer-events-none');
+                overlay.classList.remove('opacity-100', 'scale-100');
+            }, 1400);
+        }
+
+        function calculateSessionScore() {
+            let sScore = 0;
+            const startIdx = (activeSession - 1) * 10;
+            for (let i = startIdx; i < startIdx + 10; i++) {
+                if (userAnswers[i] === questions[i].c) sScore += 10;
+            }
+            sessionScoreValue = sScore;
+            
+            const statusTag = document.getElementById('status-tag');
+            if (sessionScoreValue >= 70) {
+                statusTag.textContent = "Lulus!";
+                statusTag.classList.remove('bg-red-500');
+                statusTag.classList.add('bg-pink-500');
+            } else {
+                statusTag.textContent = "Gagal";
+                statusTag.classList.remove('bg-pink-500');
+                statusTag.classList.add('bg-red-500');
+            }
+
+            document.getElementById('session-score-text').textContent = sessionScoreValue;
+            document.getElementById('session-feedback').textContent = sessionScoreValue >= 70 ? "Alhamdulillah! Karakter kamu mencerminkan anak Betawi yang jujur dan disiplin! 🌟" : "Yah, belajar lagi yuk! Nilai 70 itu syarat buat lanjut level berikutnya. Tetap semangat! 💪";
+            showView('view-session-result');
+        }
+
+        function unlockNextAndMenu() {
+            if (sessionScoreValue >= 70) {
+                if (activeSession < 3) {
+                    const nextSession = activeSession + 1;
+                    if (!unlockedSessions.includes(nextSession)) {
+                        unlockedSessions.push(nextSession);
+                        updateSessionUI(nextSession);
+                    }
+                } else if (activeSession === 3) {
+                    showFinalResult();
+                    return;
+                }
+            }
+            goBackToMenu();
+        }
+
+        function updateSessionUI(sessionNum) {
+            const card = document.getElementById(`card-session-${sessionNum}`);
+            const badge = document.getElementById(`badge-session-${sessionNum}`);
+            const lockIcon = document.getElementById(`lock-icon-${sessionNum}`);
+            card.classList.remove('locked');
+            card.classList.add('cursor-pointer');
+            badge.textContent = "TERBUKA";
+            badge.classList.remove('bg-slate-200', 'text-slate-500');
+            const colors = ["", "", "bg-green-200 text-green-700", "bg-yellow-200 text-yellow-700"];
+            badge.className = `mt-6 ${colors[sessionNum]} text-sm px-4 py-2 rounded-full font-black uppercase`;
+            if (lockIcon) lockIcon.remove();
+        }
+
+        function goBackToMenu() {
+            showView('view-start');
+        }
+
+        function showFinalResult() {
+            let finalRawScore = 0;
+            Object.keys(userAnswers).forEach(idx => {
+                if (userAnswers[idx] === questions[idx].c) finalRawScore += 10;
+            });
+            const averageScore = Math.round((finalRawScore / (questions.length)) * 10);
+            document.getElementById('final-score-text').textContent = averageScore;
+            const feedback = averageScore >= 70 
+                ? "🏆 Luar biasa! Kamu memiliki sikap sosial yang sangat baik! Terus pertahankan karakter positifmu."
+                : "🚀 Semangat ya! Kamu sudah berusaha. Yuk belajar lagi sikap sosial dari permainan tradisional yang ada dalam media ini!";
+            document.getElementById('final-feedback').textContent = feedback;
+            showView('view-final-result');
+        }
+    </script>
+</body>
+</html>

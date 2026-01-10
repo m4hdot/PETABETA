@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="id" style="overflow: hidden;">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Edukasi Sikap: Permainan Jangkungan</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        @font-face {
+            font-family: 'Poppins';
+            src: url('fonts/Poppins-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Poppins';
+            src: url('fonts/Poppins-Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body {
+            height: 100vh;
+            height: 100dvh;
+            width: 100vw;
+            width: 100dvw;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            /* --- [EDIT DI SINI] UNTUK MENGUBAH BACKGROUND/LANGIT --- */
+            background: url(background.jpg);
+            
+            background-size: cover;
+            overscroll-behavior: none;
+        }
+
+        .top-center-controls {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10002;
+        }
+
+        .fullscreen-btn, .home-btn {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid #5D4037;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 0 #3E2723;
+            padding: 0;
+        }
+
+        .fullscreen-btn:active, .home-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #3E2723;
+        }
+
+        .home-btn { display: none; }
+
+        .home-icon, .fullscreen-icon {
+            font-size: 26px;
+            color: #5D4037; 
+            line-height: 1;
+        }
+        
+        .fullscreen-icon.collapse { display: none; }
+        body.fullscreen .fullscreen-icon.expand { display: none; }
+        body.fullscreen .fullscreen-icon.collapse { display: block; }
+
+        .copyright-footer {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 101;
+        }
+        .copyright-footer p {
+            margin: 0;
+            font-size: 0.8em;
+            color: #ffffff;
+            font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .page-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            padding: 1rem;
+            position: fixed;
+            top: 0; left: 0;
+        }
+
+        .content-page {
+            display: none;
+            width: 100%;
+        }
+        
+        .menu-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 4px solid #8D6E63;
+            border-radius: 20px;
+            max-width: 900px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .menu-card h2 {
+            color: #5D4037 !important;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .menu-btn.level-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 15px;
+            width: 160px;
+            height: 160px;
+            color: white;
+            transition: all 0.2s;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transform: translateY(0);
+        }
+
+        .menu-btn.level-btn:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        .menu-action-btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 50px;
+            border: 2px solid #5D4037;
+            background: #FFECB3;
+            color: #5D4037;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #3E2723;
+            transition: 0.2s;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        .menu-action-btn:hover { background: #FFD54F; }
+        .menu-action-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        .level-btn.kerjasama { background: #FF7043; border-bottom: 6px solid #D84315; }
+        .level-btn.disiplin { background: #42A5F5; border-bottom: 6px solid #1565C0; }
+        .level-btn.kepedulian { background: #66BB6A; border-bottom: 6px solid #2E7D32; }
+
+        .level-icon { font-size: 2.5rem; margin-bottom: 5px; }
+        .level-name { font-size: 1.1rem; font-weight: 700; }
+        .level-desc { font-size: 0.75rem; opacity: 0.9; }
+
+        /* Permainan UI */
+        .Permainan-container {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0;
+        }
+
+        .player-section {
+            width: 300px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border: 3px solid #fff;
+            backdrop-filter: blur(5px);
+        }
+
+        .question-box {
+            background: #fff;
+            border: 4px solid #5D4037;
+            color: #3E2723;
+            width: 100%;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+        }
+
+        .left-player { border-color: #FF7043; }
+        .right-player { border-color: #42A5F5; }
+
+        .option-btn {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            font-weight: 600;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            background: white;
+            color: #333;
+            width: 100%;
+            min-height: 55px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .option-btn:hover:not(:disabled) { background: #f0f0f0; transform: translateY(-2px); }
+        .option-btn:active:not(:disabled) { transform: translateY(0); }
+        .option-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        
+        .option-btn.correct { background-color: #66BB6A !important; color: white !important; border-color: #2E7D32 !important; }
+        .option-btn.wrong { background-color: #EF5350 !important; color: white !important; border-color: #C62828 !important; animation: shake 0.4s; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        .score-indicator { 
+            width: 100%; text-align: center; 
+            font-size: 1.1em; font-weight: bold; 
+            color: #5D4037; padding: 8px; 
+            background: #D7CCC8; border-radius: 10px; 
+        }
+
+        .center-section { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 15px; 
+            min-width: 400px;
+            position: relative;
+        }
+
+        .center-section h1 { 
+            color: #3E2723; 
+            font-weight: 800;
+            font-size: clamp(1.5rem, 3vw, 2.5rem); 
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.6);
+            padding: 5px 20px;
+            border-radius: 50px;
+        }
+
+        .instruction { font-size: 1rem; color: #3E2723; background: rgba(255,255,255,0.7); padding: 5px 10px; border-radius: 8px; font-weight: 600; }
+
+        /* AREA PERMAINAN Jangkungan */
+        .Permainan-field { 
+            position: relative; 
+            width: 100%; 
+            max-width: 1200px; 
+            height: 250px; 
+            background: transparent;
+
+        }
+
+        .race-track { 
+            position: relative; 
+            width: 100%; 
+            height: 100%;
+            
+            /* --- [EDIT DI SINI] UNTUK MENGGUNAKAN GAMBAR ARENA/TANAH --- */
+            /* Ganti url(...) di bawah ini dengan link gambar yang Anda miliki */
+            background: url('kudaTrack.png') no-repeat center bottom;
+            
+            /* Agar gambar menutupi seluruh area track */
+            background-size: cover; 
+            
+            transition: all 0.5s ease;
+        }
+        
+
+        .racer-container { 
+            position: absolute; 
+            left: 5%; 
+            width: 80px; 
+            height: 160px; 
+            display: flex; 
+            align-items: flex-end; 
+            justify-content: center; 
+            z-index: 5; 
+            transition: left 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+        }
+
+        .left-racer { bottom: 10px; z-index: 6; }
+        .right-racer { bottom: 40px; z-index: 4; transform: scale(0.95); opacity: 0.95; }
+
+        @keyframes hopJangkungan { 
+            0% { transform: translateY(0) rotate(0deg); } 
+            20% { transform: translateY(-30px) rotate(-5deg); } 
+            50% { transform: translateY(-40px) rotate(0deg); } 
+            80% { transform: translateY(-20px) rotate(5deg); } 
+            100% { transform: translateY(0) rotate(0deg); } 
+        }
+
+        .racer-container.hopping { animation: hopJangkungan 0.5s ease-in-out; }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+        .modal-content { 
+            background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%); 
+            padding: 30px; 
+            border-radius: 30px; 
+            text-align: center; 
+            max-width: 500px; 
+            width: 90%;
+            border: 5px solid #FF6F00;
+            box-shadow: 0 0 50px rgba(255, 111, 0, 0.5);
+            animation: popIn 0.3s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .play-again-btn { 
+            background: #FF6F00; color: white; border: none; 
+            padding: 15px 40px; font-size: 1.2em; border-radius: 50px; 
+            font-weight: bold; cursor: pointer; margin-top: 10px;
+            box-shadow: 0 4px 0 #E65100;
+        }
+        .play-again-btn:hover { background: #FF8F00; }
+        .play-again-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        /* Responsive Adjustments */
+        @media screen and (max-width: 1024px) {
+            .Permainan-container { flex-direction: column; justify-content: flex-start; overflow-y: auto; height: auto; padding-bottom: 50px; }
+            .player-section { width: 90%; order: 2; flex-direction: row; align-items: center; }
+            .score-indicator { width: auto; min-width: 80px; }
+            .center-section { width: 100%; order: 1; min-height: 350px; min-width: auto; }
+            .Permainan-field { height: 200px; }
+            .racer-container { width: 60px; height: 120px; }
+            .finish-line { height: 140px; }
+        }
+
+        .countdown-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(93, 64, 55, 0.95);
+            z-index: 9999; justify-content: center; align-items: center; flex-direction: column;
+        }
+        .countdown-overlay.show { display: flex; }
+        .countdown-number { font-size: 8rem; color: #FFEB3B; font-weight: 900; text-shadow: 4px 4px 0 #E65100; }
+        .countdown-text { color: white; font-size: 2rem; font-weight: bold; margin-top: 20px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- SVG Definitions (Disimpan jika ingin kembali pakai SVG) -->
+    <svg style="display: none;">
+        <symbol id="icon-player-left" viewBox="0 0 100 200">
+            <rect x="25" y="80" width="8" height="120" fill="#8D6E63" />
+            <rect x="65" y="80" width="8" height="120" fill="#8D6E63" />
+            <rect x="25" y="140" width="15" height="5" fill="#5D4037" />
+            <rect x="65" y="140" width="15" height="5" fill="#5D4037" />
+            <circle cx="50" cy="30" r="15" fill="#FFCCBC" />
+            <path d="M30,45 Q50,45 70,45 L70,100 L30,100 Z" fill="#FF7043" />
+            <rect x="35" y="100" width="10" height="40" fill="#1565C0" />
+            <rect x="55" y="100" width="10" height="40" fill="#1565C0" />
+            <circle cx="30" cy="80" r="5" fill="#FFCCBC" />
+            <circle cx="70" cy="80" r="5" fill="#FFCCBC" />
+        </symbol>
+
+        <symbol id="icon-player-right" viewBox="0 0 100 200">
+            <rect x="25" y="80" width="8" height="120" fill="#8D6E63" />
+            <rect x="65" y="80" width="8" height="120" fill="#8D6E63" />
+            <rect x="25" y="140" width="15" height="5" fill="#5D4037" />
+            <rect x="65" y="140" width="15" height="5" fill="#5D4037" />
+            <circle cx="50" cy="30" r="15" fill="#FFCCBC" />
+            <path d="M30,45 Q50,45 70,45 L70,100 L30,100 Z" fill="#66BB6A" />
+            <rect x="35" y="100" width="10" height="40" fill="#424242" />
+            <rect x="55" y="100" width="10" height="40" fill="#424242" />
+            <circle cx="30" cy="80" r="5" fill="#FFCCBC" />
+            <circle cx="70" cy="80" r="5" fill="#FFCCBC" />
+        </symbol>
+    </svg>
+
+    <div class="top-center-controls">
+        <button id="homeBtn" class="home-btn hover-sound-btn" onclick="backToMainMenu()" title="Menu Utama">
+            <i class="fas fa-home home-icon"></i>
+        </button>
+        <button id="fullscreenBtn" class="fullscreen-btn hover-sound-btn" onclick="toggleFullscreen()" title="Layar Penuh">
+            <i class="fas fa-expand fullscreen-icon expand"></i>
+            <i class="fas fa-compress fullscreen-icon collapse"></i>
+        </button>
+    </div>
+
+    <div class="page-container">
+        <!-- Halaman Menu Utama -->
+        <div id="levelMenu" class="content-page container text-center" style="display: flex;">
+            <div class="card p-4 menu-card mx-auto text-center">
+                <h2 class="mb-2">Balapan Jangkungan<br><span style="font-size:0.6em; color:#795548;">Penguatan Sikap Sosial</span></h2>
+                <p class="mb-4" style="color: #5D4037;">Pilih Kategori Sikap:</p>
+                
+                <!-- Menu Kategori Horizontal -->
+                <div class="d-flex flex-row flex-wrap justify-content-center gap-3 mb-4">
+                    <button class="menu-btn level-btn kerjasama hover-sound-btn" onclick="selectLevel('kerjasama')">
+                        <span class="level-icon"><i class="fas fa-users"></i></span>
+                        <span class="level-name">Kerjasama</span>
+                        <span class="level-desc">Gotong Royong</span>
+                    </button>
+                    <button class="menu-btn level-btn disiplin hover-sound-btn" onclick="selectLevel('disiplin')">
+                        <span class="level-icon"><i class="fas fa-clock"></i></span>
+                        <span class="level-name">Disiplin</span>
+                        <span class="level-desc">Taat Aturan</span>
+                    </button>
+                    <button class="menu-btn level-btn kepedulian hover-sound-btn" onclick="selectLevel('kepedulian')">
+                        <span class="level-icon"><i class="fas fa-heart"></i></span>
+                        <span class="level-name">Kepedulian</span>
+                        <span class="level-desc">Empati</span>
+                    </button>
+                </div>
+
+                <!-- Tombol Menu Tambahan -->
+                <div class="d-flex flex-row flex-wrap justify-content-center gap-3">
+                    <button class="menu-action-btn hover-sound-btn" onclick="openTutorial()">
+                        <i class="fas fa-book-open me-2"></i>Cara Bermain
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Halaman Permainan -->
+        <div id="PermainanScreen" class="Permainan-container">
+            <div class="player-section left-player">
+                <div class="fw-bold text-center" style="color: #D84315;">Tim Kiri</div>
+                <div class="answer-options d-grid gap-2" id="leftOptions">
+                    <!-- Buttons generated by JS -->
+                </div>
+                <div class="score-indicator">Langkah: <span class="score-value">0</span>/5</div>
+            </div>
+
+            <div class="center-section">
+                <h1>Balap Jangkungan</h1>
+                <div id="centralQuestionBox" class="question-box">Memuat Soal...</div>
+                
+                <div class="Permainan-field">
+                    <div class="race-track" id="raceTrack">
+                        <div class="finish-line"></div>
+                        
+                        <!-- PEMAIN KIRI -->
+                        <div class="racer-container left-racer">
+                            <!-- --- [EDIT DI SINI] UNTUK GAMBAR PEMAIN KIRI --- -->
+                            <!-- Ganti URL di dalam src="..." dengan link gambar Anda -->
+                            <img src="kuda1.png" alt="Pemain Kiri" style="width: 200%; height: 200%; object-fit: contain;">
+
+                            <!-- Jika ingin kembali pakai icon SVG, hapus tanda komentar di bawah ini dan hapus tag <img> di atas -->
+                            <!-- <svg width="100%" height="100%"><use href="#icon-player-left"></use></svg> -->
+                        </div>
+
+                        <!-- PEMAIN KANAN -->
+                        <div class="racer-container right-racer">
+                            <!-- --- [EDIT DI SINI] UNTUK GAMBAR PEMAIN KANAN --- -->
+                            <!-- Ganti URL di dalam src="..." dengan link gambar Anda -->
+                            <img src="kuda2.png" alt="Pemain Kanan" style="width: 200%; height: 200%; object-fit: contain;">
+
+                            <!-- Jika ingin kembali pakai icon SVG, hapus tanda komentar di bawah ini dan hapus tag <img> di atas -->
+                            <!-- <svg width="100%" height="100%"><use href="#icon-player-right"></use></svg> -->
+                        </div>
+
+                    </div>
+                </div>
+                <p class="instruction">Jawab dengan benar agar Jangkungan melangkah maju!</p>
+            </div>
+
+            <div class="player-section right-player">
+                <div class="fw-bold text-center" id="rightPlayerName" style="color: #1565C0;">Tim Kanan</div>
+                <div class="answer-options d-grid gap-2" id="rightOptions">
+                    <!-- Buttons generated by JS -->
+                </div>
+                <div class="score-indicator">Langkah: <span class="score-value">0</span>/5</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Menang -->
+    <div id="winnerModal" class="modal">
+        <div class="modal-content">
+            <h2 id="winnerText" style="color: #E65100; margin-bottom: 15px;">JUARA!</h2>
+            <div style="font-size: 4rem; margin-bottom: 10px;">🏆</div>
+            <p id="winnerMessage" style="font-size: 1.2rem; color: #5D4037;">Selamat, kamu sangat hebat!</p>
+            <button class="play-again-btn hover-sound-btn" onclick="closeModal()">Main Lagi</button>
+        </div>
+    </div>
+
+    <!-- Modal Tutorial -->
+    <div id="tutorialModal" class="modal">
+        <div class="modal-content" style="text-align: left;">
+            <h3 style="color: #5D4037; text-align: center; margin-bottom: 20px;"><i class="fas fa-book-open me-2"></i>Cara Bermain</h3>
+            <ol style="font-size: 1.1rem; color: #3E2723; line-height: 1.6;">
+                <li>Permainan ini dimainkan oleh <strong>2 orang pemain.</strong></li>
+                <li>Pilih <strong>Kategori Sikap</strong>(Kerjasama, Disiplin, atau Kepedulian).</li>
+                <li>Jawab pertanyaan yang muncul dengan <strong>cepat dan tepat</strong></li>
+                <li>Setiap jawaban <strong>Benar</strong> akan membuat Jangkungan maju 1 langkah.</li>
+                <li>Jawaban <strong>Salah</strong> akan membuat Jangkungan diam di tempat.</li>
+                <li>Pemain pertama yang mencapai 5 langkah adalah pemenangnya!</li>
+            </ol>
+            <div class="text-center mt-4">
+                <button class="play-again-btn hover-sound-btn" onclick="closeTutorial()">Mengerti</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown -->
+    <div id="countdownOverlay" class="countdown-overlay">
+        <div id="countdownNumber" class="countdown-number">3</div>
+        <div id="countdownText" class="countdown-text">Siap bermain Jangkungan?</div>
+    </div>
+
+    <div class="copyright-footer">
+        <p>© Permainan Jangkungan 2025</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- KONFIGURASI Permainan ---
+        const RACE_LENGTH = 5;
+        
+        const questionBank = {
+            'kerjasama': [
+                { q: "Saat estafet Jangkungan, temanmu terlihat kelelahan di tengah jalan. Sikapmu?", a: "Menyemangati agar kuat", opts: ["Meninggalkan saja", "Menyemangati agar kuat", "Memarahinya"] },
+                { q: "Agar tim Jangkungan kita bisa menang Balapan, yang paling penting adalah...", a: "Kekompakan tim", opts: ["Main sendiri-sendiri", "Kekompakan tim", "Saling diam"] },
+                { q: "Saat membuat Jangkungan dari bambu, pekerjaan akan cepat selesai jika...", a: "Dikerjakan gotong royong", opts: ["Dikerjakan sendiri", "Dikerjakan gotong royong", "Menyuruh orang lain"] },
+                { q: "Teman satu timmu kesulitan naik ke pijakan Jangkungan. Kamu sebaiknya...", a: "Membantu memegangi", opts: ["Menertawakan", "Membantu memegangi", "Merekam videonya"] },
+                { q: "Strategi urutan pemain estafet Jangkungan sebaiknya ditentukan dengan...", a: "Musyawarah mufakat", opts: ["Marah-marah", "Musyawarah mufakat", "Keinginan ketua saja"] },
+                { q: "Jika tim kita kalah dalam Balapan Jangkungan, sikap yang benar adalah...", a: "Saling menghibur", opts: ["Saling menyalahkan", "Saling menghibur", "Mogok main"] },
+                { q: "Tugas menyiapkan alat Jangkungan sebelum Balapan adalah tanggung jawab...", a: "Semua anggota tim", opts: ["Hanya ketua", "Semua anggota tim", "Penonton"] },
+                { q: "Temanmu terjatuh saat lari estafet Jangkungan. Tindakan tim adalah...", a: "Segera membantunya", opts: ["Lari terus", "Segera membantunya", "Pura-pura tidak lihat"] },
+                { q: "Sebagai supporter tim Jangkungan sekolah, kita harus memberikan...", a: "Dukungan positif", opts: ["Ejekan lawan", "Dukungan positif", "Sampah botol"] },
+                { q: "Setelah selesai bermain Jangkungan bersama, sebaiknya kita...", a: "Merapikan alat bersama", opts: ["Langsung pulang", "Merapikan alat bersama", "Menunggu disuruh"] }
+            ],
+            'disiplin': [
+                { q: "Sebelum peluit tanda mulai dibunyikan wasit, posisi kita harus...", a: "Diam di garis start", opts: ["Curi start lari", "Diam di garis start", "Jalan-jalan"] },
+                { q: "Bermain Jangkungan di jalan raya yang ramai kendaraan adalah perbuatan...", a: "Melanggar aturan", opts: ["Sangat pemberani", "Melanggar aturan", "Biasa saja"] },
+                { q: "Memeriksa kondisi bambu dan pijakan sebelum main Jangkungan termasuk...", a: "Disiplin keselamatan", opts: ["Buang-buang waktu", "Disiplin keselamatan", "Ketakutan berlebihan"] },
+                { q: "Jika dinyatakan diskualifikasi oleh wasit karena pelanggaran, kita harus...", a: "Menerima keputusan", opts: ["Menerima keputusan", "Marah pada wasit", "Menangis keras"] },
+                { q: "Datang ke tempat latihan Jangkungan sebaiknya...", a: "Tepat waktu", opts: ["Terlambat", "Tepat waktu", "Sesuka hati"] },
+                { q: "Menggunakan alas kaki saat bermain Jangkungan bertujuan untuk...", a: "Keamanan diri", opts: ["Gaya-gayaan", "Keamanan diri", "Agar dipuji"] },
+                { q: "Mengantri giliran menggunakan Jangkungan milik sekolah melatih sikap...", a: "Tertib", opts: ["Egois", "Tertib", "Serakah"] },
+                { q: "Setelah meminjam Jangkungan milik teman, kita wajib...", a: "Mengembalikannya", opts: ["Menyimpannya", "Mengembalikannya", "Membuangnya"] },
+                { q: "Jika ada aturan 'dilarang saling dorong' saat main Jangkungan, kita harus...", a: "Mematuhinya", opts: ["Melanggarnya", "Mematuhinya", "Melupakannya"] },
+                { q: "Sikap sportif saat kalah Balapan Jangkungan ditunjukkan dengan...", a: "Tidak curang/marah", opts: ["Merusak alat", "Tidak curang/marah", "Menuduh wasit"] }
+            ],
+            'kepedulian': [
+                { q: "Melihat teman jatuh dari Jangkungan dan kakinya sakit, kamu...", a: "Menolong & mengobati", opts: ["Membiarkan saja", "Menolong & mengobati", "Memfoto"] },
+                { q: "Temanmu ingin main tapi tidak punya Jangkungan. Kamu punya dua, sebaiknya...", a: "Meminjamkan satu", opts: ["Pamer saja", "Meminjamkan satu", "Menyembunyikan"] },
+                { q: "Ada teman yang takut ketinggian saat belajar Jangkungan. Kamu...", a: "Memberi semangat", opts: ["Mengejek penakut", "Memberi semangat", "Memaksa naik"] },
+                { q: "Lawanmu memenangkan Balapan Jangkungan. Kamu mengucapkan...", a: "Selamat ya!", opts: ["Awas kamu!", "Selamat ya!", "Curang tuh!"] },
+                { q: "Melihat bambu Jangkungan teman retak dan bahaya, kamu...", a: "Mengingatkannya", opts: ["Diam saja", "Mengingatkannya", "Menunggu patah"] },
+                { q: "Mengejek teman yang belum lancar berjalan pakai Jangkungan adalah...", a: "Tidak terpuji", opts: ["Sangat lucu", "Tidak terpuji", "Tanda kehebatan"] },
+                { q: "Temanmu terlihat haus sekali setelah Balapan lari Jangkungan. Kamu...", a: "Berbagi air minum", opts: ["Minum sendiri", "Berbagi air minum", "Pamer minuman"] },
+                { q: "Temanmu sedih karena kalah Balapan Jangkungan. Kamu sebaiknya...", a: "Menghiburnya", opts: ["Mengejeknya", "Menghiburnya", "Ikut menangis"] },
+                { q: "Ada paku di lapangan tempat bermain Jangkungan. Kamu...", a: "Menyingkirkannya", opts: ["Tidak peduli", "Menyingkirkannya", "Menutupi daun"] },
+                { q: "Temanmu sedang sakit tapi ingin ikut Balapan Jangkungan. Kamu menyarankan...", a: "Istirahat dulu", opts: ["Ayo paksa main", "Istirahat dulu", "Jangan manja"] }
+            ]
+        };
+
+        const PermainanState = {
+            leftPlayer: { score: 0, pos: 0 },
+            rightPlayer: { score: 0, pos: 0 },
+            currentCategory: 'kerjasama',
+            currentQ: null,
+            currentPool: [], 
+            cooldown: false
+        };
+
+        const audioCorrect = new Audio('benar.mp3');
+        const audioWrong = new Audio('salah.mp3'); 
+        const audioWin = new Audio('https://bangbin85.github.io/Permainan/IFP2025/Berpacu-Waktu/bangbin_Waktu_File/bangbinWinner.mp3');
+        const audioStart = new Audio('https://bangbin85.github.io/Permainan/IFP2025/Berpacu-Waktu/bangbin_Waktu_File/bangbinStart.mp3');
+        const audioMove = new Audio('https://bangbin85.github.io/Permainan/IFP2025/Berpacu-Waktu/bangbin_Waktu_File/bangbinCar.mp3'); 
+        
+        function playSound(audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log("Audio error:", e));
+        }
+
+        // --- MANAJEMEN MENU ---
+        function showPage(pageId) {
+            document.getElementById('levelMenu').style.display = 'none';
+            document.getElementById('PermainanScreen').style.display = 'none';
+            
+            const target = document.getElementById(pageId);
+            if(pageId === 'PermainanScreen') target.style.display = 'flex';
+            else target.style.display = 'flex';
+
+            document.getElementById('homeBtn').style.display = (pageId === 'PermainanScreen') ? 'flex' : 'none';
+        }
+
+        function backToMainMenu() {
+            showPage('levelMenu');
+        }
+
+        function openTutorial() { document.getElementById('tutorialModal').style.display = 'flex'; }
+        function closeTutorial() { document.getElementById('tutorialModal').style.display = 'none'; }
+        
+        // --- LOGIKA Permainan ---
+        function selectLevel(category) {
+            PermainanState.currentCategory = category;
+            PermainanState.currentPool = [...questionBank[category]]; 
+            startCountdown();
+        }
+
+        function startCountdown() {
+            const overlay = document.getElementById('countdownOverlay');
+            overlay.classList.add('show');
+            playSound(audioStart);
+
+            let count = 3;
+            const numEl = document.getElementById('countdownNumber');
+            const txtEl = document.getElementById('countdownText');
+
+            const interval = setInterval(() => {
+                numEl.innerText = count;
+                if(count === 0) {
+                    numEl.innerText = "MAJU!";
+                    txtEl.innerText = "Ayo jaga keseimbangan!";
+                }
+                
+                if(count < 0) {
+                    clearInterval(interval);
+                    overlay.classList.remove('show');
+                    startPermainan();
+                }
+                count--;
+            }, 800);
+        }
+
+        function startPermainan() {
+            PermainanState.leftPlayer = { score: 0, pos: 0 };
+            PermainanState.rightPlayer = { score: 0, pos: 0 };
+            
+            // Atur nama pemain kanan
+            document.getElementById('rightPlayerName').innerText = "Tim Kanan";
+
+            updateVisuals();
+            showPage('PermainanScreen');
+            generateQuestion();
+        }
+
+        function generateQuestion() {
+            if (PermainanState.currentPool.length === 0) {
+                PermainanState.currentPool = [...questionBank[PermainanState.currentCategory]];
+            }
+
+            const randIndex = Math.floor(Math.random() * PermainanState.currentPool.length);
+            const randQ = PermainanState.currentPool[randIndex];
+            PermainanState.currentPool.splice(randIndex, 1);
+
+            const shuffledOpts = [...randQ.opts].sort(() => Math.random() - 0.5);
+            PermainanState.currentQ = { text: randQ.q, correct: randQ.a, options: shuffledOpts };
+
+            document.getElementById('centralQuestionBox').innerText = randQ.q;
+
+            const updateButtons = (prefix) => {
+                const container = document.getElementById(prefix + 'Options');
+                container.innerHTML = ''; 
+                PermainanState.currentQ.options.slice(0, 3).forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn hover-sound-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => handleAnswer(prefix === 'left' ? 'left' : 'right', opt, btn);
+                    container.appendChild(btn);
+                });
+            };
+
+            updateButtons('left');
+            updateButtons('right');
+            PermainanState.cooldown = false;
+        }
+
+        function handleAnswer(player, answer, btnElement) {
+            if (PermainanState.cooldown) return;
+
+            const isCorrect = (answer === PermainanState.currentQ.correct);
+            const allBtns = document.querySelectorAll('.option-btn');
+            
+            // Disable semua tombol agar tidak bisa klik ganda
+            allBtns.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                btnElement.classList.add('correct');
+                playSound(audioCorrect);
+                if (player === 'left') PermainanState.leftPlayer.pos++;
+                else PermainanState.rightPlayer.pos++;
+                moveRacer(player);
+                checkWin();
+            } else {
+                btnElement.classList.add('wrong');
+                playSound(audioWrong);
+                // Highlight jawaban yang benar
+                allBtns.forEach(b => {
+                    if(b.innerText === PermainanState.currentQ.correct) b.classList.add('correct');
+                });
+                PermainanState.cooldown = true;
+                setTimeout(() => { generateQuestion(); }, 1500);
+            }
+        }
+
+        function moveRacer(player) {
+            playSound(audioMove);
+            const racer = document.querySelector(player === 'left' ? '.left-racer' : '.right-racer');
+            racer.classList.add('hopping');
+            setTimeout(() => { racer.classList.remove('hopping'); }, 500);
+            updateVisuals();
+        }
+
+        function updateVisuals() {
+            document.querySelector('.left-player .score-value').innerText = PermainanState.leftPlayer.pos;
+            document.querySelector('.right-player .score-value').innerText = PermainanState.rightPlayer.pos;
+
+            const startPct = 5;
+            const finishPct = 80;
+            const step = (finishPct - startPct) / RACE_LENGTH;
+
+            const leftCss = startPct + (PermainanState.leftPlayer.pos * step);
+            const rightCss = startPct + (PermainanState.rightPlayer.pos * step);
+
+            document.querySelector('.left-racer').style.left = leftCss + '%';
+            document.querySelector('.right-racer').style.left = rightCss + '%';
+        }
+
+        function checkWin() {
+            if (PermainanState.leftPlayer.pos >= RACE_LENGTH || PermainanState.rightPlayer.pos >= RACE_LENGTH) {
+                PermainanState.cooldown = true;
+                let winnerName = "";
+                
+                if (PermainanState.leftPlayer.pos >= RACE_LENGTH) {
+                    winnerName = "Tim Kiri (Anda)";
+                } else {
+                    winnerName = "Tim Kanan";
+                }
+                
+                setTimeout(() => showWinner(winnerName), 800);
+            } else {
+                PermainanState.cooldown = true;
+                setTimeout(generateQuestion, 800);
+            }
+        }
+
+        function showWinner(name) {
+            playSound(audioWin);
+            document.getElementById('winnerMessage').innerText = `Selamat kepada ${name} berhasil mencapai garis finish!`;
+            document.getElementById('winnerModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('winnerModal').style.display = 'none';
+            backToMainMenu();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>

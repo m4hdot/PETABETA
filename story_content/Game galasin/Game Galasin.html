@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Galasin Landscape - Custom Assets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            /* Default background jika gambar tidak diisi */
+            background-color: #fef3c7; 
+            background-image: radial-gradient(#fbbf24 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+            background-repeat: repeat;
+            background-position: center;
+            color: #4a5568;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        canvas {
+            /* Default warna lapangan */
+            background-color: #e2bc8a; 
+            border: 6px solid #8b4513;
+            display: block;
+            width: 80vw;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(139, 69, 19, 0.3);
+            background-size: cover;
+            background-position: center;
+        }
+        .ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        #modal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .quiz-option {
+            background: #fdf2f2;
+            color: #1a202c;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #e2e8f0;
+        }
+        .quiz-option:hover {
+            background: #fef3c7;
+            border-color: #d97706;
+        }
+        .btn {
+            background: #d97706;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            pointer-events: auto;
+            display: inline-block;
+            margin: 5px;
+            box-shadow: 0 4px 0 #92400e;
+        }
+        .btn-blue { background: #2563eb; box-shadow: 0 4px 0 #1e3a8a; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(2px); box-shadow: none; }
+        .hidden { display: none !important; }
+        
+        #joystick-container {
+            position: absolute;
+            bottom: 30px;
+            left: 50px;
+            width: 100px;
+            height: 100px;
+            background: rgba(139, 69, 19, 0.2);
+            border-radius: 50%;
+            display: none;
+            touch-action: none;
+            border: 2px solid rgba(139, 69, 19, 0.4);
+        }
+        #joystick-knob {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(139, 69, 19, 0.6);
+            border-radius: 50%;
+            top: 30px;
+            left: 30px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gameUI" class="ui-overlay hidden">
+        <h1 class="text-xl md:text-2xl font-bold text-amber-900">GALASIN SOSIAL</h1>
+        <div class="text-lg bg-white/80 p-3 rounded-lg border border-amber-200 shadow-sm mt-2">
+            <div class="text-amber-900">Skor: <span id="score" class="font-bold text-emerald-600">0</span> / 50</div>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="joystick-container">
+        <div id="joystick-knob"></div>
+    </div>
+
+    <div id="modal">
+        <div id="modalContent" class="bg-white p-8 rounded-xl border-4 border-amber-600 text-center max-w-lg w-11/12 shadow-2xl">
+            <div id="menuView">
+                <h2 class="text-4xl font-bold mb-4 text-amber-700">GALASIN</h2>
+                <p class="mb-6 text-amber-900">Permainan Tradisional Penguat Sikap Sosial</p>
+                <button class="btn btn-blue w-full mb-2" onclick="showTutorial()">PETUNJUK BERMAIN</button>
+                <button class="btn w-full" onclick="startGame()">MULAI BERMAIN</button>
+            </div>
+
+            <div id="tutorialView" class="hidden">
+                <h2 class="text-2xl font-bold mb-4 text-amber-700">Cara Bermain</h2>
+                <div class="text-left text-amber-900 space-y-2 mb-6 text-sm md:text-base">
+                    <p>1. <b>Gerakkan:</b> Gunakan arah atau tombol WASD/Panah untuk bergerak.</p>
+                    <p>2. <b>Misi:</b> Lewati area penjaga dari zona aman ke tujuan, lalu kembali lagi tanpa tersentuh.</p>
+                    <p>3. <b>Harta Karun:</b> Ambil peti emas untuk menjawab kuis sikap sosial dan dapatkan poin tambahan!</p>
+                    <p>4. <b>MENANG:</b> Kumpulkan 50 poin untuk menjadi pemenang dalam permainan ini!</p>
+                </div>
+                <button class="btn btn-blue" onclick="showMenu()">KEMBALI KE MENU</button>
+            </div>
+
+            <div id="quizView" class="hidden">
+                <h2 id="quizTitle" class="text-2xl font-bold mb-4 text-amber-600">Kuis Sikap Sosial</h2>
+                <p id="quizQuestion" class="mb-6 text-amber-900 text-lg font-medium"></p>
+                <div id="quizOptions" class="text-left"></div>
+            </div>
+
+            <div id="endView" class="hidden">
+                <h2 id="endTitle" class="text-4xl font-bold mb-4 text-amber-700">HASIL</h2>
+                <p id="endMsg" class="mb-6 text-amber-900"></p>
+                <div class="flex flex-col gap-2">
+                    <button class="btn" onclick="startGame()">MAIN LAGI</button>
+                    <button class="btn btn-blue" onclick="showMenu()">MENU AWAL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        //  AREA KONFIGURASI (UBAH DISINI)
+        // ==========================================
+
+        // 1. BACKGROUND / LATAR BELAKANG
+        // Isi dengan URL gambar (contoh: 'background.jpg' atau 'https://example.com/bg.png')
+        // Biarkan kosong "" jika ingin pakai warna default.
+        const PAGE_BACKGROUND_URL = "background.jpg";  // Latar belakang halaman web (luar lapangan)
+        const FIELD_BACKGROUND_URL = ""; // Latar belakang lapangan (dalam garis)
+
+        // 2. PEMAIN (Penyerang)
+        const PLAYER_IMAGE_URL = "2.png"; 
+
+        // 3. PENJAGA (Defenders) - Masukkan URL berbeda untuk tiap penjaga jika mau
+        // Urutan: [Depan-Kiri, Depan-Tengah, Tengah-Kiri, Tengah-Kanan, Belakang, Sodor(Garis Tengah)]
+        const GUARD_IMAGE_URLS = [
+            "3.png", // Penjaga 1
+            "4.png", // Penjaga 2
+            "5.png", // Penjaga 3
+            "6.png", // Penjaga 4
+            "8.png", // Penjaga 5
+            "7.png"  // Penjaga Sodor
+        ];
+
+        // 4. SUARA KEMENANGAN
+        const WIN_SOUND_URL = "";
+
+        // ==========================================
+        //  AKHIR KONFIGURASI
+        // ==========================================
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const modal = document.getElementById('modal');
+        const joystickContainer = document.getElementById('joystick-container');
+        const joystickKnob = document.getElementById('joystick-knob');
+        
+        const menuView = document.getElementById('menuView');
+        const tutorialView = document.getElementById('tutorialView');
+        const quizView = document.getElementById('quizView');
+        const endView = document.getElementById('endView');
+        const gameUI = document.getElementById('gameUI');
+
+        // Apply Custom Backgrounds
+        if (PAGE_BACKGROUND_URL) {
+            document.body.style.backgroundImage = `url('${PAGE_BACKGROUND_URL}')`;
+            document.body.style.backgroundSize = "cover";
+            document.body.style.backgroundRepeat = "no-repeat";
+        }
+        if (FIELD_BACKGROUND_URL) {
+            canvas.style.backgroundImage = `url('${FIELD_BACKGROUND_URL}')`;
+            // Warna transparan agar gambar terlihat jika pakai PNG
+            canvas.style.backgroundColor = "transparent"; 
+        }
+
+        const fieldWidth = 960;
+        const fieldHeight = 540;
+        const boxX = 120;
+        const boxY = 40;
+        const boxW = 720;
+        const boxH = 460;
+
+        canvas.width = fieldWidth;
+        canvas.height = fieldHeight;
+
+        let score = 0;
+        let gameActive = false;
+        let hasReachedFinish = false;
+        const keys = {};
+
+        let joystickActive = false;
+        let stickX = 0;
+        let stickY = 0;
+
+        let confetti = [];
+
+        // Load Images Logic
+        const playerImg = new Image();
+        let playerImgLoaded = false;
+        if (PLAYER_IMAGE_URL) {
+            playerImg.src = PLAYER_IMAGE_URL;
+            playerImg.onload = () => playerImgLoaded = true;
+        }
+
+        const guardImgs = [];
+        const guardImgsLoaded = [];
+        for (let i = 0; i < 6; i++) {
+            guardImgs[i] = new Image();
+            guardImgsLoaded[i] = false;
+            if (GUARD_IMAGE_URLS[i]) {
+                guardImgs[i].src = GUARD_IMAGE_URLS[i];
+                guardImgs[i].onload = () => guardImgsLoaded[i] = true;
+            }
+        }
+        
+        const winSoundEffect = new Audio();
+        if (WIN_SOUND_URL) winSoundEffect.src = WIN_SOUND_URL;
+
+        // Radius Pemain diperbesar agar lebih jelas (25 = diameter 50px area hit, visual 70px)
+        const player = { x: 60, y: 270, radius: 25, speed: 5 };
+        let defenders = [];
+        let quizItems = [];
+
+        const socialQuestions = [
+            { q: "Saat bermain Galasin, teman setimmu terlihat kelelahan menjaga areanya. Apa tindakanmu?", options: ["Memberikan semangat kepadanya", "Memarahinya karena lambat", "Membiarkannya saja"], correct: 0 },
+            { q: "Wasit menganggap timmu ada yang tersentuh, tapi timmu merasa tidak tersentuh. Apa tindakanmu?", options: ["Berdebat dengan wasit", "Menerima keputusan dengan lapang dada", "Keluar dari permainan"], correct: 1 },
+            { q: "Kamu tidak sengaja menabrak lawan hingga jatuh saat mengejar. Apa tanggung jawabmu?", options: ["Pura-pura tidak tahu", "Membantunya bangun dan minta maaf", "Tertawa karena dia jatuh"], correct: 1 },
+            { q: "Kaki kamu keluar area permainan (kalah), tapi penjaga tidak melihat. Apa tindakanmu?", options: ["Terus lari pura-pura aman", "Diam saja sampai ditegur", "Mengaku bahwa kamu sudah mati"], correct: 2 },
+            { q: "Lawan mainmu kalah dan menangis karena sedih. Apa bentuk kepedulianmu?", options: ["Memberi semangat dan menghiburnya", "Mengejek kekalahannya", "Mengabaikannya"], correct: 0 }
+        ];
+
+        if ('ontouchstart' in window) {
+            joystickContainer.style.display = 'block';
+        }
+
+        function playSoundEffect(type) {
+            if (type === 'win' && winSoundEffect.src) {
+                winSoundEffect.currentTime = 0;
+                winSoundEffect.play().catch(e => console.log("Audio play failed"));
+                if ('speechSynthesis' in window) {
+                    const msg = new SpeechSynthesisUtterance("Luar biasa! Kamu adalah juara Galasin sejati!");
+                    msg.lang = 'id-ID';
+                    window.speechSynthesis.speak(msg);
+                }
+                return;
+            }
+
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                if (type === 'win') {
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+                    oscillator.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.5); 
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.5);
+                    if ('speechSynthesis' in window) {
+                        const msg = new SpeechSynthesisUtterance("Luar biasa! Kamu adalah juara Galasin sejati!");
+                        msg.lang = 'id-ID';
+                        window.speechSynthesis.speak(msg);
+                    }
+                } else if (type === 'point') {
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.1);
+                }
+            } catch (e) { console.log("Audio not supported"); }
+        }
+
+        function createConfetti() {
+            confetti = [];
+            for (let i = 0; i < 150; i++) {
+                confetti.push({
+                    x: Math.random() * fieldWidth,
+                    y: Math.random() * fieldHeight - fieldHeight,
+                    size: Math.random() * 8 + 4,
+                    color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+                    speed: Math.random() * 3 + 2,
+                    angle: Math.random() * 6.28
+                });
+            }
+        }
+
+        function drawCharacter(x, y, color, charType, index = 0) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // UKURAN DIPERBESAR: 70x70 pixel untuk gambar kustom
+            if (charType === 'hero' && playerImgLoaded) {
+                // Gambar Pemain Custom
+                ctx.drawImage(playerImg, -35, -35, 70, 70);
+            } else if (charType === 'guard' && guardImgsLoaded[index]) {
+                // Gambar Penjaga Custom
+                ctx.drawImage(guardImgs[index], -35, -35, 70, 70);
+            } else {
+                // --- FALLBACK: GAMBAR DEFAULT JIKA URL KOSONG ---
+                // Diperbesar skalanya (~1.4x dari sebelumnya)
+                
+                // Badan / Baju
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(0, 14, 21, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Kepala
+                ctx.fillStyle = "#ffdbac"; // Warna kulit
+                ctx.beginPath();
+                ctx.arc(0, -11, 20, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (charType === 'hero') {
+                    // PECI HITAM (Default Pemain)
+                    ctx.fillStyle = "black";
+                    ctx.fillRect(-17, -31, 34, 17);
+                    ctx.beginPath();
+                    ctx.ellipse(0, -31, 17, 4, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // RAMBUT PENJAGA (Default Penjaga)
+                    ctx.fillStyle = "#2d1a12";
+                    if (index % 3 === 0) {
+                        ctx.beginPath();
+                        ctx.moveTo(-20, -14);
+                        ctx.lineTo(-14, -31); ctx.lineTo(-7, -21);
+                        ctx.lineTo(0, -34); ctx.lineTo(7, -21);
+                        ctx.lineTo(14, -31); ctx.lineTo(20, -14);
+                        ctx.fill();
+                    } else if (index % 3 === 1) {
+                        ctx.beginPath();
+                        ctx.arc(0, -14, 21, Math.PI, 0);
+                        ctx.fill();
+                    } else {
+                        ctx.fillStyle = "white";
+                        ctx.fillRect(-21, -21, 42, 8);
+                        ctx.fillStyle = "red";
+                        ctx.fillRect(-21, -21, 42, 4);
+                    }
+                }
+
+                // Wajah
+                ctx.fillStyle = "white";
+                ctx.beginPath();
+                ctx.arc(-7, -11, 4, 0, Math.PI * 2);
+                ctx.arc(7, -11, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.beginPath();
+                ctx.arc(-7, -11, 2, 0, Math.PI * 2);
+                ctx.arc(7, -11, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, -3, 6, 0.2 * Math.PI, 0.8 * Math.PI);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawTreasureChest(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            ctx.beginPath();
+            ctx.ellipse(0, 15, 18, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#8B4513";
+            ctx.fillRect(-15, -5, 30, 20);
+            ctx.strokeStyle = "#5D2E0C";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(-15, -5, 30, 20);
+            ctx.fillStyle = "#A0522D";
+            ctx.beginPath();
+            ctx.arc(0, -5, 15, Math.PI, 0);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = "#FFD700";
+            ctx.fillRect(-17, -5, 4, 20);
+            ctx.fillRect(13, -5, 4, 20);
+            ctx.fillRect(-3, 0, 6, 8);
+            ctx.fillStyle = "black";
+            ctx.fillRect(-1, 3, 2, 3);
+            ctx.restore();
+        }
+
+        function initLevel() {
+            const trackWidth = boxW / 4;
+            const constantSpeed = 2.2; 
+            defenders = [
+                { x: boxX, y: 270, type: 'v', dir: 1, speed: constantSpeed, color: '#ef4444', index: 0 }, 
+                { x: boxX + trackWidth, y: 270, type: 'v', dir: 1, speed: constantSpeed, color: '#f97316', index: 1 },
+                { x: boxX + trackWidth * 2, y: 270, type: 'v', dir: -1, speed: constantSpeed, color: '#eab308', index: 2 },
+                { x: boxX + trackWidth * 3, y: 270, type: 'v', dir: 1, speed: constantSpeed, color: '#22c55e', index: 3 },
+                { x: boxX + boxW, y: 270, type: 'v', dir: -1, speed: constantSpeed, color: '#06b6d4', index: 4 }, 
+                { x: boxX + boxW/2, y: boxY + boxH/2, type: 'h', dir: 1, speed: constantSpeed, color: '#a855f7', index: 5 }
+            ];
+            spawnQuiz();
+        }
+
+        function spawnQuiz() {
+            const colW = boxW / 4;
+            const rowH = boxH / 2;
+            quizItems = [
+                { x: boxX + (colW * 0.5), y: boxY + (rowH * 0.5), active: true },
+                { x: boxX + (colW * 3.5), y: boxY + (rowH * 1.5), active: true }
+            ];
+        }
+
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        joystickContainer.addEventListener('touchstart', e => {
+            joystickActive = true;
+            handleJoystick(e.touches[0]);
+        });
+        window.addEventListener('touchmove', e => {
+            if (joystickActive) handleJoystick(e.touches[0]);
+        }, { passive: false });
+        window.addEventListener('touchend', () => {
+            joystickActive = false;
+            stickX = 0; stickY = 0;
+            joystickKnob.style.transform = `translate(0, 0)`;
+        });
+
+        function handleJoystick(touch) {
+            const rect = joystickContainer.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const dx = touch.clientX - centerX;
+            const dy = touch.clientY - centerY;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const maxDist = rect.width / 2;
+            const normalizedDX = dx / dist;
+            const normalizedDY = dy / dist;
+            const finalDist = Math.min(dist, maxDist);
+            stickX = normalizedDX * (finalDist / maxDist);
+            stickY = normalizedDY * (finalDist / maxDist);
+            joystickKnob.style.transform = `translate(${stickX * 30}px, ${stickY * 30}px)`;
+        }
+
+        function showMenu() {
+            modal.style.display = 'flex';
+            menuView.classList.remove('hidden');
+            tutorialView.classList.add('hidden');
+            quizView.classList.add('hidden');
+            endView.classList.add('hidden');
+            gameActive = false;
+            gameUI.classList.add('hidden');
+            confetti = [];
+        }
+
+        function showTutorial() {
+            menuView.classList.add('hidden');
+            tutorialView.classList.remove('hidden');
+        }
+
+        function startGame() {
+            score = 0;
+            gameUI.classList.remove('hidden');
+            confetti = [];
+            startActualLevel();
+        }
+
+        function startActualLevel() {
+            player.x = 60;
+            player.y = fieldHeight / 2;
+            hasReachedFinish = false;
+            initLevel();
+            scoreEl.innerText = score;
+            gameActive = true;
+            modal.style.display = 'none';
+            requestAnimationFrame(update);
+        }
+
+        function triggerQuiz() {
+            gameActive = false;
+            const randomQ = socialQuestions[Math.floor(Math.random() * socialQuestions.length)];
+            modal.style.display = 'flex';
+            menuView.classList.add('hidden');
+            quizView.classList.remove('hidden');
+            document.getElementById('quizQuestion').innerText = randomQ.q;
+            
+            const optionsDiv = document.getElementById('quizOptions');
+            optionsDiv.innerHTML = '';
+            randomQ.options.forEach((opt, idx) => {
+                const div = document.createElement('div');
+                div.className = 'quiz-option';
+                div.innerText = opt;
+                div.onclick = () => {
+                    if (idx === randomQ.correct) {
+                        score += 5;
+                        scoreEl.innerText = score;
+                        playSoundEffect('point');
+                    }
+                    if (score >= 50) {
+                        checkWin();
+                    } else {
+                        resumeGame();
+                    }
+                };
+                optionsDiv.appendChild(div);
+            });
+        }
+
+        function resumeGame() {
+            modal.style.display = 'none';
+            quizView.classList.add('hidden');
+            gameActive = true;
+            requestAnimationFrame(update);
+        }
+
+        function checkWin() {
+            if (score >= 50) {
+                gameActive = false;
+                modal.style.display = 'flex';
+                quizView.classList.add('hidden');
+                menuView.classList.add('hidden');
+                tutorialView.classList.add('hidden');
+                endView.classList.remove('hidden');
+                
+                document.getElementById('endTitle').innerText = "🏆 KAMU MENANG! 🏆";
+                document.getElementById('endTitle').style.color = "#059669";
+                document.getElementById('endMsg').innerHTML = `
+                    <div class='text-xl font-bold text-amber-600 mb-2'>Luar Biasa!</div>
+                    <div>Kamu berhasil mengumpulkan 50 poin. Teruslah pertahankan sikap sosialmu yang hebat ini!</div>
+                `;
+                
+                playSoundEffect('win');
+                createConfetti();
+            }
+        }
+
+        function gameOver() {
+            gameActive = false;
+            modal.style.display = 'flex';
+            quizView.classList.add('hidden');
+            menuView.classList.add('hidden');
+            endView.classList.remove('hidden');
+            document.getElementById('endTitle').innerText = "TERTANGKAP!";
+            document.getElementById('endTitle').style.color = "#b91c1c";
+            document.getElementById('endMsg').innerText = `Skor: ${score}. Terkena penjaga! Tetap semangat, mari perbaiki strategi dan coba lagi.`;
+        }
+
+        function update() {
+            if (!gameActive && confetti.length === 0) return;
+
+            if (gameActive) {
+                let moveX = 0;
+                let moveY = 0;
+
+                if (keys['ArrowUp'] || keys['KeyW']) moveY -= player.speed;
+                if (keys['ArrowDown'] || keys['KeyS']) moveY += player.speed;
+                if (keys['ArrowLeft'] || keys['KeyA']) moveX -= player.speed;
+                if (keys['ArrowRight'] || keys['KeyD']) moveX += player.speed;
+
+                if (joystickActive) {
+                    moveX += stickX * player.speed;
+                    moveY += stickY * player.speed;
+                }
+
+                player.x += moveX;
+                player.y += moveY;
+
+                player.y = Math.max(boxY + player.radius, Math.min(boxY + boxH - player.radius, player.y));
+                player.x = Math.max(player.radius, Math.min(fieldWidth - player.radius, player.x));
+
+                if (!hasReachedFinish && player.x > boxX + boxW + 20) {
+                    hasReachedFinish = true;
+                }
+                if (hasReachedFinish && player.x < boxX - 20) {
+                    score += 10;
+                    playSoundEffect('point');
+                    if (score >= 50) {
+                        checkWin();
+                        return;
+                    }
+                    startActualLevel();
+                }
+
+                quizItems.forEach(q => {
+                    if (q.active) {
+                        const dist = Math.hypot(player.x - q.x, player.y - q.y);
+                        if (dist < player.radius + 18) {
+                            q.active = false;
+                            triggerQuiz();
+                        }
+                    }
+                });
+
+                defenders.forEach(d => {
+                    if (d.type === 'v') {
+                        d.y += d.speed * d.dir;
+                        if (d.y > boxY + boxH - 20 || d.y < boxY + 20) d.dir *= -1;
+                    } else {
+                        d.x += d.speed * d.dir;
+                        if (d.x > boxX + boxW - 20 || d.x < boxX + 20) d.dir *= -1;
+                        d.y = boxY + boxH / 2;
+                    }
+
+                    // Collision (Radius + Guard visual adjustment)
+                    const dist = Math.hypot(player.x - d.x, player.y - d.y);
+                    // Radius pemain 25 + Estimasi radius penjaga 25 = 50. 
+                    // Kita gunakan 50 untuk tabrakan agar tidak terlalu sulit atau terlalu mudah.
+                    if (dist < player.radius + 25) {
+                        gameOver();
+                    }
+                });
+            }
+
+            confetti.forEach(p => {
+                p.y += p.speed;
+                p.x += Math.sin(p.angle) * 1;
+                p.angle += 0.1;
+                if (p.y > fieldHeight) p.y = -10;
+            });
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, fieldWidth, fieldHeight);
+
+            ctx.strokeStyle = "rgba(255,255,255,0.7)";
+            ctx.lineWidth = 5;
+            ctx.strokeRect(boxX, boxY, boxW, boxH);
+            
+            // Zona Aman (Kecuali jika pakai background full field, warna ini bisa diatur opacity-nya)
+            if (!FIELD_BACKGROUND_URL) {
+                ctx.fillStyle = "rgba(16, 185, 129, 0.2)"; 
+                ctx.fillRect(0, 0, boxX, fieldHeight); 
+                ctx.fillStyle = "rgba(59, 130, 246, 0.2)"; 
+                ctx.fillRect(boxX + boxW, 0, fieldWidth - (boxX + boxW), fieldHeight);
+            } else {
+                // Jika pakai background image, gunakan highlight lebih tipis
+                ctx.fillStyle = "rgba(16, 185, 129, 0.1)"; 
+                ctx.fillRect(0, 0, boxX, fieldHeight); 
+                ctx.fillStyle = "rgba(59, 130, 246, 0.1)"; 
+                ctx.fillRect(boxX + boxW, 0, fieldWidth - (boxX + boxW), fieldHeight);
+            }
+
+            ctx.beginPath();
+            const trackWidth = boxW / 4;
+            for(let i=1; i<4; i++) {
+                ctx.moveTo(boxX + trackWidth * i, boxY);
+                ctx.lineTo(boxX + trackWidth * i, boxY + boxH);
+            }
+            ctx.moveTo(boxX, boxY + boxH/2);
+            ctx.lineTo(boxX + boxW, boxY + boxH/2);
+            ctx.stroke();
+
+            ctx.fillStyle = "#92400e";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "center";
+            
+            if (!hasReachedFinish) {
+                ctx.fillText("ZONA AMAN", boxX / 2, fieldHeight / 2 - 10);
+                ctx.fillStyle = "#059669";
+                ctx.fillText("TUJUAN", boxX + boxW + (fieldWidth - (boxX + boxW))/2, fieldHeight / 2 - 10);
+            } else {
+                ctx.fillStyle = "#1d4ed8";
+                ctx.fillText("TUJUAN", boxX / 2, fieldHeight / 2 - 10);
+                ctx.fillStyle = "#92400e";
+                ctx.fillText("ZONA AMAN", boxX + boxW + (fieldWidth - (boxX + boxW))/2, fieldHeight / 2 - 10);
+            }
+
+            quizItems.forEach(q => {
+                if (q.active) drawTreasureChest(q.x, q.y);
+            });
+
+            defenders.forEach(d => drawCharacter(d.x, d.y, d.color, 'guard', d.index));
+            drawCharacter(player.x, player.y, '#3b82f6', 'hero');
+
+            ctx.fillStyle = "#78350f";
+            ctx.font = "bold 18px Arial";
+            ctx.textAlign = "center";
+            const msg = hasReachedFinish ? "MISI: BERLARI KE ARAH KIRI!" : "MISI: BERLARI KE ARAH KANAN!";
+            ctx.fillText(msg, fieldWidth/2, 25);
+
+            confetti.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.angle);
+                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                ctx.restore();
+            });
+        }
+
+        showMenu();
+        draw();
+    </script>
+</body>
+</html>
