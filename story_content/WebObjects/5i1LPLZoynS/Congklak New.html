@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congklak Edukasi Karakter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+        :root {
+            --wood-dark: #4A332A;
+            --wood-light: #8D6E63;
+            --hole-bg: #2D1E19;
+            --seed-color: #ECEFF1;
+        }
+
+        /* --- PENGATURAN BACKGROUND --- */
+        body {
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            overflow-x: hidden;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+
+        /* --- VISUAL PAPAN --- */
+        .board-container {
+            perspective: 1200px;
+            /* Kembali ke max-width yang lebih compact agar tidak terlalu melar */
+            max-width: 950px; 
+            width: 100%;
+            margin: 0 auto;
+            padding: 10px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .board {
+            background-color: var(--wood-light);
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v5.1L6 20.5 20 18v2.5H0v2h20v5.1L6 22.5 20 25v2.5H0v2h20v5.1L6 27.5 20 30v2.5H0v2h20v5.1L6 32.5 20 35v2.5H0v2h20v5.1L6 37.5V0h20v2.5L6 7.5 20 5v2.5H0v2h20v5.1L6 12.5 20 15v2.5H0v2h20v5.1L6 17.5z' fill='%233e2723' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            border-radius: 60px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.6),
+                inset 0 4px 20px rgba(255, 255, 255, 0.15),
+                inset 0 -10px 20px rgba(0, 0, 0, 0.4);
+            border: 12px solid var(--wood-dark);
+            position: relative;
+            transform-style: preserve-3d;
+            padding: 20px 10px; /* Padding samping diperkecil agar board fit */
+            z-index: 20;
+            display: flex;
+            justify-content: center; /* Center content */
+        }
+
+        /* --- LUBANG --- */
+        .hole {
+            background-color: var(--hole-bg);
+            border-radius: 50%;
+            box-shadow: inset 2px 5px 10px rgba(0,0,0,0.9), inset -2px -2px 5px rgba(255,255,255,0.05);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 25;
+            overflow: visible;
+        }
+
+        .hole.active-turn:hover {
+            transform: scale(1.1) translateZ(10px);
+            border: 2px solid #FFD700;
+        }
+
+        .hole.disabled { cursor: not-allowed; opacity: 0.9; }
+        .hole.popping { animation: bounce 0.3s ease-in-out; border: 2px solid rgba(255, 255, 255, 0.4); }
+
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+        .store { width: 80px; height: 180px; border-radius: 40px; }
+        /* Ukuran lubang statis untuk desktop, responsif via media query */
+        .small-hole { width: 65px; height: 65px; margin: 0; /* Margin dihandle oleh gap flexbox */ }
+
+        @media (max-width: 768px) {
+            .store { width: 14vw; height: 40vw; max-width: 50px; max-height: 140px; }
+            .small-hole { width: 11vw; height: 11vw; max-width: 55px; max-height: 55px; } 
+            .board { padding: 10px 5px; border-width: 6px; }
+            /* Memastikan gap tidak terlalu besar di HP */
+        }
+
+        /* --- BIJI --- */
+        .seed-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        .seed {
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, var(--seed-color));
+            border-radius: 50%;
+            position: absolute; 
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            border: 1px solid rgba(0,0,0,0.2);
+            animation: float 3s infinite ease-in-out alternate;
+        }
+
+        .seed:nth-child(2n) { animation-duration: 2.5s; }
+        .seed:nth-child(3n) { animation-duration: 3.5s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(1px, -2px); }
+        }
+
+        @keyframes dropIn {
+            0% { transform: scale(2) translateY(-30px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .seed-new {
+            animation: dropIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .count-badge {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            background: linear-gradient(135deg, #FF512F, #DD2476);
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 40;
+            border: 2px solid white;
+        }
+
+        /* --- TANGAN ANIMASI --- */
+        #hand {
+            position: absolute;
+            z-index: 9999; 
+            font-size: 3.5rem;
+            pointer-events: none;
+            transition: transform 0.25s linear; 
+            filter: drop-shadow(0 20px 20px rgba(0,0,0,0.6));
+            display: none;
+            top: 0; left: 0;
+            will-change: transform;
+        }
+
+        /* --- UI & MODALS --- */
+        #start-screen { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+            text-align: left;
+        }
+        .quiz-option:hover {
+            background-color: #EEF2FF;
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen">
+
+    <!-- Hand Element -->
+    <div id="hand">👋</div>
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-4">
+        <h1 class="text-5xl md:text-7xl font-bold text-yellow-400 mb-2 tracking-tighter" style="text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);">Permainan Congklak</h1>
+        <p class="text-gray-300 mb-8 text-lg font-semibold">Edisi Sikap Sosial</p>
+        
+        <div id="mode-selection" class="flex flex-col gap-4 w-full max-w-md">
+            <button onclick="selectMode('human')" class="bg-blue-600 hover:bg-blue-500 text-white p-4 rounded-xl text-xl font-bold transition flex justify-center items-center gap-2">
+                👥 Lawan Teman
+            </button>
+            <button onclick="showDifficulty()" class="bg-red-600 hover:bg-red-500 text-white p-4 rounded-xl text-xl font-bold transition flex justify-center items-center gap-2">
+                🤖 Lawan Komputer
+            </button>
+        </div>
+
+        <div id="difficulty-selection" class="hidden flex flex-col gap-4 w-full max-w-md">
+            <h3 class="text-white text-center text-xl font-bold mb-2">Pilih Tingkat Kesulitan</h3>
+            <button onclick="selectDifficulty(0.3)" class="bg-green-500 p-3 rounded-xl font-bold">🌱 Mudah</button>
+            <button onclick="selectDifficulty(0.6)" class="bg-yellow-500 text-black p-3 rounded-xl font-bold">⚖️ Sedang</button>
+            <button onclick="selectDifficulty(0.9)" class="bg-red-600 p-3 rounded-xl font-bold">🔥 Sulit</button>
+            <button onclick="backToMode()" class="text-gray-400 underline mt-2">Kembali</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl px-4 mb-4 flex justify-between items-end relative z-10">
+        <div class="flex flex-col items-center">
+            <div id="p2-avatar" class="text-4xl mb-1">🤖</div>
+            <div class="glass-panel px-4 py-2 rounded-xl text-center">
+                <p id="p2-name" class="text-xs text-white uppercase font-bold tracking-wider">KOMPUTER</p>
+                <p id="p2-score" class="text-3xl font-bold text-yellow-400">0</p>
+            </div>
+        </div>
+        <div class="flex flex-col items-center justify-center pb-2">
+            <div id="turn-badge" class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-lg animate-pulse">Menunggu...</div>
+            <div id="status-text" class="text-yellow-100 text-sm mt-2 font-mono h-5 text-center font-bold" style="text-shadow: 1px 1px 2px black;"></div>
+        </div>
+        <div class="flex flex-col items-center">
+            <div class="glass-panel px-4 py-2 rounded-xl text-center">
+                <p class="text-xs text-white uppercase font-bold tracking-wider">PEMAIN 1</p>
+                <p id="p1-score" class="text-3xl font-bold text-green-400">0</p>
+            </div>
+            <div class="text-4xl mt-1">👤</div>
+        </div>
+    </header>
+
+    <!-- Board -->
+    <div class="board-container">
+        <!-- Menggunakan gap dan justify-center agar lubang rapat dan rapi di tengah -->
+        <div class="board flex items-center gap-1 md:gap-4">
+            <div id="hole-15" class="hole store disabled flex flex-col justify-center" data-index="15">
+                <div class="seed-container"></div>
+                <span class="count-badge">0</span>
+            </div>
+            
+            <div class="flex flex-col space-y-2 md:space-y-4">
+                <!-- Row P2 (Atas) - Menggunakan justify-center & gap -->
+                <div class="flex justify-center gap-2 md:gap-3">
+                    <div id="hole-14" class="hole small-hole p2-hole" onclick="handleHoleClick(14)" data-index="14"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-13" class="hole small-hole p2-hole" onclick="handleHoleClick(13)" data-index="13"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-12" class="hole small-hole p2-hole" onclick="handleHoleClick(12)" data-index="12"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-11" class="hole small-hole p2-hole" onclick="handleHoleClick(11)" data-index="11"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-10" class="hole small-hole p2-hole" onclick="handleHoleClick(10)" data-index="10"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-9" class="hole small-hole p2-hole" onclick="handleHoleClick(9)" data-index="9"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-8" class="hole small-hole p2-hole" onclick="handleHoleClick(8)" data-index="8"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                </div>
+                
+                <!-- Row P1 (Bawah) - Menggunakan justify-center & gap -->
+                <div class="flex justify-center gap-2 md:gap-3">
+                    <div id="hole-0" class="hole small-hole p1-hole" onclick="handleHoleClick(0)" data-index="0"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-1" class="hole small-hole p1-hole" onclick="handleHoleClick(1)" data-index="1"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-2" class="hole small-hole p1-hole" onclick="handleHoleClick(2)" data-index="2"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-3" class="hole small-hole p1-hole" onclick="handleHoleClick(3)" data-index="3"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-4" class="hole small-hole p1-hole" onclick="handleHoleClick(4)" data-index="4"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-5" class="hole small-hole p1-hole" onclick="handleHoleClick(5)" data-index="5"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                    <div id="hole-6" class="hole small-hole p1-hole" onclick="handleHoleClick(6)" data-index="6"><div class="seed-container"></div><span class="count-badge">7</span></div>
+                </div>
+            </div>
+
+            <div id="hole-7" class="hole store disabled flex flex-col justify-center" data-index="7">
+                <div class="seed-container"></div>
+                <span class="count-badge">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="mt-8 flex gap-4 z-10">
+        <button onclick="showRules()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-full shadow-lg">? Aturan</button>
+        <button onclick="location.reload()" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 px-6 rounded-full shadow-lg">Menu Utama</button>
+    </div>
+
+    <!-- Modal Info -->
+    <div id="modal-overlay" class="fixed inset-0 hidden z-50 flex items-center justify-center bg-black bg-opacity-80 p-4 backdrop-blur-sm">
+        <div class="bg-white text-gray-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border-4 border-blue-500">
+            <h2 id="modal-title" class="text-2xl font-bold mb-4 text-center text-blue-800">Info</h2>
+            <div id="modal-content" class="text-sm leading-relaxed mb-6"></div>
+            <div class="text-center">
+                <button onclick="closeModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded-full shadow-md">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal KUIS SOSIAL -->
+    <div id="quiz-overlay" class="fixed inset-0 hidden z-[60] flex items-center justify-center bg-black bg-opacity-90 p-4 backdrop-blur-md">
+        <div class="bg-white text-gray-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border-4 border-yellow-400 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">💡</div>
+            
+            <span id="quiz-category" class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-bold mb-2">Tanggung Jawab</span>
+            <h2 class="text-xl font-bold mb-4 text-gray-800 leading-tight" id="quiz-question">Pertanyaan disini...</h2>
+            
+            <div id="quiz-options" class="space-y-3 mb-4"></div>
+            
+            <p class="text-xs text-gray-500 italic text-center">Jawab benar untuk mendapatkan BONUS 1 Biji di Lumbung!</p>
+        </div>
+    </div>
+
+    <script>
+        const STATE = {
+            board: [],
+            currentPlayer: 1, 
+            gameMode: 'cpu',
+            difficulty: 0.6,
+            isAnimating: false,
+            hand: 0,
+            usedQuestionIndices: []
+        };
+
+        const SEEDS_PER_HOLE = 7;
+        const HAND_MOVE_TIME = 300; 
+
+        const ICONS = {
+            p1: { avatar: '👤', hand: '👋', name: 'PEMAIN 1' },
+            p2_human: { avatar: '👱', hand: '👋🏼', name: 'PEMAIN 2' },
+            p2_cpu: { avatar: '🤖', hand: '🦾', name: 'CPU' }
+        };
+
+        // --- BANK SOAL 30 PERTANYAAN (Konteks Bermain Congklak) ---
+        const SOCIAL_QUESTIONS = [
+            // KEJUJURAN (10 Soal)
+            { category: "Kejujuran", text: "Saat lawan ke toilet, apa yang kamu lakukan?", options: ["Diam & tunggu", "Tambah biji sendiri", "Kurangi biji lawan", "Intip lumbung lawan"], correct: 0 },
+            { category: "Kejujuran", text: "Biji di tangan sisa satu, tapi lubang masih jauh. Kamu...", options: ["Pura-pura jatuhin 2", "Jujur berhenti", "Sembunyikan biji", "Geser lubang"], correct: 1 },
+            { category: "Kejujuran", text: "Kamu tidak sengaja menyenggol papan dan biji bergeser.", options: ["Diam saja", "Perbaiki posisi biji", "Biarkan berantakan", "Salahkan lawan"], correct: 1 },
+            { category: "Kejujuran", text: "Lawan lupa jalan padahal giliran dia belum habis.", options: ["Ingatkan lawan", "Biarkan saja", "Suruh berhenti", "Senang dalam hati"], correct: 0 },
+            { category: "Kejujuran", text: "Menghitung biji saat mengambil dari lubang sebaiknya...", options: ["Dalam hati biar bingung", "Suara jelas agar transparan", "Cepat-cepat biar salah", "Ditutup tangan"], correct: 1 },
+            { category: "Kejujuran", text: "Bolehkah menyembunyikan biji di telapak tangan?", options: ["Boleh asal tidak ketahuan", "Tidak boleh", "Boleh sekali", "Tergantung lawan"], correct: 1 },
+            { category: "Kejujuran", text: "Jika kamu menang karena curang, bagaimana perasaanmu?", options: ["Bangga", "Biasa saja", "Merasa bersalah", "Senang sekali"], correct: 2 },
+            { category: "Kejujuran", text: "Temanmu salah hitung biji. Sikapmu?", options: ["Marah-marah", "Koreksi dengan sopan", "Tertawakan", "Diamkan"], correct: 1 },
+            { category: "Kejujuran", text: "Aturan main harus disepakati di...", options: ["Awal permainan", "Tengah permainan", "Saat mau kalah", "Akhir permainan"], correct: 0 },
+            { category: "Kejujuran", text: "Lawanmu anak kecil yang belum pandai main.", options: ["Tipu dia", "Ajari dengan jujur", "Manfaatkan", "Curangi"], correct: 1 },
+
+            // DISIPLIN (10 Soal)
+            { category: "Disiplin", text: "Biji terakhir jatuh di lubang kosong lawan. Artinya...", options: ["Main lagi", "Mati (Ganti giliran)", "Nembak", "Marah"], correct: 1 },
+            { category: "Disiplin", text: "Saat lawan sedang berpikir lama, kamu...", options: ["Sabar menunggu", "Desak terus", "Tinggal pergi", "Mainkan papan"], correct: 0 },
+            { category: "Disiplin", text: "Arah putaran main congklak adalah...", options: ["Searah jarum jam", "Sembarangan", "Bolak-balik", "Bebas"], correct: 0 },
+            { category: "Disiplin", text: "Kamu menjatuhkan 2 biji sekaligus di satu lubang.", options: ["Biarkan", "Ambil satu lagi", "Lanjut saja", "Itu pelanggaran"], correct: 3 },
+            { category: "Disiplin", text: "Kapan boleh 'nembak'?", options: ["Jatuh di lubang kosong sendiri", "Jatuh di lubang lawan", "Kapan saja", "Saat biji banyak"], correct: 0 },
+            { category: "Disiplin", text: "Jika sudah 'mati', bolehkah memaksa jalan lagi?", options: ["Boleh", "Tidak boleh", "Sedikit saja", "Jika lawan izin"], correct: 1 },
+            { category: "Disiplin", text: "Biji jatuh di lumbung lawan. Apa yang terjadi?", options: ["Lanjut main", "Lumbung meledak", "Dilewati (tidak diisi)", "Ambil semua"], correct: 2 },
+            { category: "Disiplin", text: "Sikap duduk yang baik saat bermain adalah...", options: ["Sopan & tenang", "Kaki di atas meja", "Tiduran", "Jongkok di kursi"], correct: 0 },
+            { category: "Disiplin", text: "Bolehkah memegang biji lawan saat bukan giliran?", options: ["Boleh", "Dilarang", "Terserah", "Bebas"], correct: 1 },
+            { category: "Disiplin", text: "Fokus saat bermain bertujuan untuk...", options: ["Menang curang", "Menghargai permainan", "Cepat bosan", "Bikin pusing"], correct: 1 },
+
+            // TANGGUNG JAWAB (10 Soal)
+            { category: "Tanggung Jawab", text: "Selesai main, biji berserakan di lantai.Sikapmu?", options: ["Tinggal pergi", "Pungut & simpan", "Sapu ke kolong", "Suruh teman"], correct: 1 },
+            { category: "Tanggung Jawab", text: "Papan congklak kotor kena debu. Kamu akan...", options: ["Bersihkan", "Buang", "Biarkan kotor", "Pakai saja"], correct: 0 },
+            { category: "Tanggung Jawab", text: "Kamu meminjam congklak teman dan menghilangkannya. Maka kamu akan...", options: ["Pura-pura tidak tahu", "Ganti rugi/Minta maaf", "Salahkan teman", "Lari"], correct: 1 },
+            { category: "Tanggung Jawab", text: "Kalah dalam permainan, sikapmu?", options: ["Banting papan", "Nangis", "Terima lapang dada", "Ajak berantem"], correct: 2 },
+            { category: "Tanggung Jawab", text: "Menang dalam permainan, sikapmu?", options: ["Ejek lawan", "Tetap rendah hati", "Sombong", "Tertawa keras"], correct: 1 },
+            { category: "Tanggung Jawab", text: "Temanmu merusak papanmu tidak sengaja.Kamu akan...", options: ["Maafkan & nasihati", "Pukul dia", "Rusak balik", "Teriaki"], correct: 0 },
+            { category: "Tanggung Jawab", text: "Sebelum mulai, kita harus...", options: ["Berdoa & siap", "Makan dulu", "Tidur", "Marah"], correct: 0 },
+            { category: "Tanggung Jawab", text: "Sikap yang baik terhadap barang permainan seperti Biji congklak yaitu...", options: ["Dimakan", "Dilempar ke teman", "Dimainkan hati-hati", "Dihancurkan"], correct: 2 },
+            { category: "Tanggung Jawab", text: "Mengapa kita harus merawat permainan tradisional?", options: ["Untuk dijual", "Agar lestari", "Agar dibuang", "Tidak penting"], correct: 1 },
+            { category: "Tanggung Jawab", text: "Mengajak teman main congklak berarti...", options: ["Melestarikan budaya", "Buang waktu", "Pamer skill", "Cari musuh"], correct: 0 }
+        ];
+
+        // --- VISUALIZATION ---
+        function getSeedPosition(index, total) {
+            const r = Math.random() * 18; 
+            const angle = Math.random() * Math.PI * 2;
+            const x = Math.cos(angle) * r;
+            const y = Math.sin(angle) * r;
+            return { x, y };
+        }
+
+        function getStorePosition(index) {
+            const w = 20; const h = 60;
+            const x = (Math.random() - 0.5) * 2 * w;
+            const y = (Math.random() - 0.5) * 2 * h;
+            return { x, y };
+        }
+
+        function renderBoard() {
+            for (let i = 0; i < 16; i++) {
+                const holeEl = document.getElementById(`hole-${i}`);
+                const seedContainer = holeEl.querySelector('.seed-container');
+                const countBadge = holeEl.querySelector('.count-badge');
+                
+                const targetCount = STATE.board[i];
+                countBadge.innerText = targetCount;
+                
+                const currentSeeds = seedContainer.querySelectorAll('.seed');
+                
+                if (currentSeeds.length < targetCount) {
+                    const toAdd = targetCount - currentSeeds.length;
+                    for (let k = 0; k < toAdd; k++) {
+                        const seed = document.createElement('div');
+                        seed.className = 'seed seed-new';
+                        let pos = (i === 7 || i === 15) ? getStorePosition() : getSeedPosition();
+                        seed.style.left = '50%'; seed.style.top = '50%';
+                        seed.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+                        seed.style.marginLeft = `${pos.x}px`; seed.style.marginTop = `${pos.y}px`;
+                        seed.style.transform = 'none';
+                        seedContainer.appendChild(seed);
+                    }
+                } else if (currentSeeds.length > targetCount) {
+                    const toRemove = currentSeeds.length - targetCount;
+                    for (let k = 0; k < toRemove; k++) {
+                        if (seedContainer.lastElementChild) seedContainer.lastElementChild.remove();
+                    }
+                }
+            }
+            document.getElementById('p1-score').innerText = STATE.board[7];
+            document.getElementById('p2-score').innerText = STATE.board[15];
+        }
+
+        // --- GAME LOGIC ---
+        function showDifficulty() {
+            document.getElementById('mode-selection').classList.add('hidden');
+            document.getElementById('difficulty-selection').classList.remove('hidden');
+            document.getElementById('difficulty-selection').classList.add('flex');
+        }
+
+        function backToMode() {
+            document.getElementById('difficulty-selection').classList.add('hidden');
+            document.getElementById('difficulty-selection').classList.remove('flex');
+            document.getElementById('mode-selection').classList.remove('hidden');
+        }
+
+        function selectMode(mode) {
+            STATE.gameMode = mode;
+            if (mode === 'human') {
+                document.getElementById('p2-name').innerText = ICONS.p2_human.name;
+                document.getElementById('p2-avatar').innerText = ICONS.p2_human.avatar;
+                startGame();
+            }
+        }
+
+        function selectDifficulty(level) {
+            STATE.gameMode = 'cpu';
+            STATE.difficulty = level;
+            let label = level === 0.3 ? "MUDAH" : (level === 0.6 ? "SEDANG" : "SULIT");
+            document.getElementById('p2-name').innerText = `${ICONS.p2_cpu.name} (${label})`;
+            document.getElementById('p2-avatar').innerText = ICONS.p2_cpu.avatar;
+            startGame();
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            STATE.board = Array(16).fill(0).map((_, i) => (i === 7 || i === 15) ? 0 : SEEDS_PER_HOLE);
+            STATE.currentPlayer = 1;
+            STATE.usedQuestionIndices = []; // Reset soal
+            renderBoard();
+            updateTurnUI();
+        }
+
+        function handleHoleClick(index) {
+            if (STATE.isAnimating) return;
+            if (STATE.currentPlayer === 1 && (index < 0 || index > 6)) return;
+            if (STATE.currentPlayer === 2 && (STATE.gameMode === 'cpu' || index < 8 || index > 14)) return;
+            if (STATE.board[index] === 0) {
+                showMessage("Lubang Kosong", "Pilih lubang yang ada bijinya.");
+                return;
+            }
+            playTurn(index);
+        }
+
+        function updateTurnUI() {
+            const badge = document.getElementById('turn-badge');
+            const status = document.getElementById('status-text');
+            const p1Holes = document.querySelectorAll('.p1-hole');
+            const p2Holes = document.querySelectorAll('.p2-hole');
+
+            p1Holes.forEach(h => { h.classList.remove('active-turn'); h.classList.remove('disabled'); });
+            p2Holes.forEach(h => { h.classList.remove('active-turn'); h.classList.remove('disabled'); });
+
+            // LOGIKA GANTI GILIRAN & CEK KETERSEDIAAN BIJI (ATURAN BARU)
+            // Jika giliran pemain, tapi barisannya kosong -> GAME OVER
+            if (isSideEmpty(STATE.currentPlayer)) {
+                endGame();
+                return;
+            }
+
+            if (STATE.currentPlayer === 1) {
+                badge.innerText = `Giliran: ${ICONS.p1.name}`;
+                badge.className = "bg-green-600 text-white px-6 py-2 rounded-full font-bold shadow-lg";
+                status.innerText = "Pilih lubang bawah";
+                p1Holes.forEach(h => h.classList.add('active-turn'));
+                p2Holes.forEach(h => h.classList.add('disabled')); 
+            } else {
+                let p2Name = STATE.gameMode === 'human' ? ICONS.p2_human.name : ICONS.p2_cpu.name;
+                badge.innerText = `Giliran: ${p2Name}`;
+                badge.className = STATE.gameMode === 'human' ? "bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-lg" : "bg-red-600 text-white px-6 py-2 rounded-full font-bold shadow-lg";
+                status.innerText = STATE.gameMode === 'human' ? "Pilih lubang atas" : "Komputer berpikir...";
+                
+                if (STATE.gameMode === 'human') {
+                    p2Holes.forEach(h => h.classList.add('active-turn'));
+                    p1Holes.forEach(h => h.classList.add('disabled'));
+                } else {
+                    p1Holes.forEach(h => h.classList.add('disabled'));
+                    p2Holes.forEach(h => h.classList.add('disabled'));
+                    setTimeout(cpuLogic, 1000);
+                }
+            }
+        }
+
+        function cpuLogic() {
+            const validMoves = [];
+            for (let i = 8; i <= 14; i++) {
+                if (STATE.board[i] > 0) validMoves.push(i);
+            }
+            if (validMoves.length === 0) { endGame(); return; } // Double check
+
+            const playSmart = Math.random() < STATE.difficulty;
+            let chosenMove = -1;
+
+            if (playSmart) {
+                for (let move of validMoves) {
+                    if (STATE.board[move] === 15 - move) { chosenMove = move; break; }
+                }
+                if (chosenMove === -1) {
+                    for (let move of validMoves) {
+                        const landsAt = (move + STATE.board[move]) % 16;
+                        if (landsAt >= 8 && landsAt <= 14 && STATE.board[landsAt] === 0) {
+                            const opposite = 14 - landsAt;
+                            if (STATE.board[opposite] > 0) { chosenMove = move; break; }
+                        }
+                    }
+                }
+            }
+            if (chosenMove === -1) chosenMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+            playTurn(chosenMove);
+        }
+
+        async function playTurn(startIndex) {
+            STATE.isAnimating = true;
+            let currentIdx = startIndex;
+
+            moveHand(currentIdx);
+            await sleep(HAND_MOVE_TIME + 50);
+
+            STATE.hand = STATE.board[currentIdx];
+            STATE.board[currentIdx] = 0;
+            renderBoard();
+            highlightHole(currentIdx);
+            await sleep(200);
+
+            while (STATE.hand > 0) {
+                currentIdx = (currentIdx + 1) % 16;
+                if (STATE.currentPlayer === 1 && currentIdx === 15) continue;
+                if (STATE.currentPlayer === 2 && currentIdx === 7) continue;
+
+                moveHand(currentIdx);
+                await sleep(HAND_MOVE_TIME); 
+                STATE.board[currentIdx]++;
+                STATE.hand--;
+                renderBoard(); 
+                await sleep(100); 
+            }
+
+            hideHand();
+            checkLanding(currentIdx);
+        }
+
+        async function checkLanding(lastIdx) {
+            const isMyStore = (STATE.currentPlayer === 1 && lastIdx === 7) || (STATE.currentPlayer === 2 && lastIdx === 15);
+            const isHumanTurn = (STATE.currentPlayer === 1) || (STATE.currentPlayer === 2 && STATE.gameMode === 'human');
+
+            if (isMyStore) {
+                document.getElementById('status-text').innerText = "Jatuh di lumbung! Jalan lagi.";
+                
+                if (isHumanTurn) {
+                     await sleep(500);
+                     triggerSocialQuestion(STATE.currentPlayer, () => continueAfterStore(lastIdx));
+                     return;
+                } else {
+                    await sleep(500);
+                    continueAfterStore(lastIdx);
+                    return;
+                }
+            }
+
+            const isOneSeed = STATE.board[lastIdx] === 1;
+            const isMySide = (STATE.currentPlayer === 1 && lastIdx >= 0 && lastIdx <= 6) ||
+                             (STATE.currentPlayer === 2 && lastIdx >= 8 && lastIdx <= 14);
+
+            if (isOneSeed && isMySide) {
+                const oppositeIdx = 14 - lastIdx;
+                if (STATE.board[oppositeIdx] > 0) {
+                    
+                    if (isHumanTurn) {
+                        document.getElementById('status-text').innerText = "MOMEN EMAS: NEMBAK!";
+                        await sleep(500);
+                        
+                        triggerSocialQuestion(STATE.currentPlayer, async () => {
+                            await executeShoot(lastIdx, oppositeIdx);
+                            switchTurn();
+                        });
+                        return; 
+                    } else {
+                        document.getElementById('status-text').innerText = "CPU NEMBAK!!!";
+                        await sleep(500);
+                        await executeShoot(lastIdx, oppositeIdx);
+                        switchTurn();
+                        return;
+                    }
+                }
+                switchTurn();
+            } 
+            else if (STATE.board[lastIdx] > 1) { 
+                document.getElementById('status-text').innerText = "Jalan terus...";
+                await sleep(500);
+                playTurn(lastIdx); 
+            } else {
+                switchTurn();
+            }
+        }
+
+        async function executeShoot(lastIdx, oppositeIdx) {
+            moveHand(oppositeIdx);
+            await sleep(HAND_MOVE_TIME + 200);
+            
+            const captured = STATE.board[oppositeIdx] + STATE.board[lastIdx];
+            STATE.board[oppositeIdx] = 0;
+            STATE.board[lastIdx] = 0;
+            
+            const myStore = STATE.currentPlayer === 1 ? 7 : 15;
+            STATE.board[myStore] += captured;
+            
+            moveHand(myStore);
+            await sleep(HAND_MOVE_TIME);
+            renderBoard();
+            await sleep(300);
+            hideHand();
+        }
+
+        function continueAfterStore(lastIdx) {
+             // Cek apakah pemain masih punya biji untuk jalan lagi?
+             // Jika tidak, aturan baru bilang GAME STOP.
+             if (isSideEmpty(STATE.currentPlayer)) { endGame(); return; }
+
+             STATE.isAnimating = false;
+             if (STATE.gameMode === 'cpu' && STATE.currentPlayer === 2) {
+                 setTimeout(cpuLogic, 1000);
+             } else {
+                 updateTurnUI();
+             }
+        }
+
+        // --- QUIZ HANDLING (NO REPEAT) ---
+        let pendingCallback = null;
+
+        function triggerSocialQuestion(player, callback) {
+            // Filter indeks yang belum dipakai
+            let availableIndices = SOCIAL_QUESTIONS.map((_, i) => i).filter(i => !STATE.usedQuestionIndices.includes(i));
+            
+            // Jika habis, reset
+            if (availableIndices.length === 0) {
+                STATE.usedQuestionIndices = [];
+                availableIndices = SOCIAL_QUESTIONS.map((_, i) => i);
+            }
+
+            // Pilih Random
+            const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+            STATE.usedQuestionIndices.push(randomIndex);
+            
+            const q = SOCIAL_QUESTIONS[randomIndex];
+            
+            document.getElementById('quiz-category').innerText = q.category;
+            document.getElementById('quiz-question').innerText = q.text;
+            const optionsDiv = document.getElementById('quiz-options');
+            optionsDiv.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('div');
+                btn.className = "quiz-option bg-gray-100 p-3 rounded-lg border border-gray-300 hover:border-blue-500 font-medium text-sm";
+                btn.innerText = opt;
+                btn.onclick = () => handleQuizAnswer(idx === q.correct, player);
+                optionsDiv.appendChild(btn);
+            });
+            document.getElementById('quiz-overlay').classList.remove('hidden');
+            pendingCallback = callback;
+        }
+
+        function handleQuizAnswer(isCorrect, player) {
+            document.getElementById('quiz-overlay').classList.add('hidden');
+            if (isCorrect) {
+                const storeIdx = player === 1 ? 7 : 15;
+                STATE.board[storeIdx]++;
+                renderBoard();
+                
+                const hand = document.getElementById('hand');
+                hand.style.display = 'block';
+                hand.innerText = '🌟'; 
+                hand.style.transform = `translate(${window.innerWidth/2}px, ${window.innerHeight/2}px) scale(3)`;
+                
+                setTimeout(() => {
+                    hand.style.display = 'none';
+                    if (pendingCallback) pendingCallback();
+                }, 1000);
+                showMessage("Jawaban Benar!", "Kamu dapat <b>1 Biji Bonus</b>!");
+            } else {
+                showMessage("Kurang Tepat", "Jawabanmu salah. Tetap semangat!");
+                if (pendingCallback) pendingCallback();
+            }
+        }
+
+        function switchTurn() {
+            STATE.isAnimating = false;
+            
+            // Ganti pemain
+            STATE.currentPlayer = STATE.currentPlayer === 1 ? 2 : 1;
+            
+            // Cek kondisi menang langsung di updateTurnUI
+            updateTurnUI();
+        }
+
+        function endGame() {
+            STATE.isAnimating = false;
+            hideHand();
+            
+            // Sapu bersih sisa biji ke pemilik masing-masing
+            for (let i = 0; i <= 6; i++) { STATE.board[7] += STATE.board[i]; STATE.board[i] = 0; }
+            for (let i = 8; i <= 14; i++) { STATE.board[15] += STATE.board[i]; STATE.board[i] = 0; }
+            renderBoard();
+
+            const p1 = STATE.board[7]; const p2 = STATE.board[15];
+            let msg = "";
+            let p2Name = STATE.gameMode === 'human' ? ICONS.p2_human.name : ICONS.p2_cpu.name;
+
+            if (p1 > p2) msg = `<span class="text-green-600 text-xl font-bold">KAMU MENANG!</span><br>Skor: ${p1} vs ${p2}`;
+            else if (p2 > p1) msg = `<span class="text-red-600 text-xl font-bold">${p2Name} MENANG!</span><br>Skor: ${p1} vs ${p2}`;
+            else msg = "SERI!";
+            
+            showMessage("Permainan Selesai", msg);
+            document.getElementById('turn-badge').innerText = "Game Over";
+        }
+
+        function isSideEmpty(player) {
+            let start = player === 1 ? 0 : 8; let end = player === 1 ? 6 : 14;
+            let sum = 0; for (let i = start; i <= end; i++) sum += STATE.board[i];
+            return sum === 0;
+        }
+
+        function moveHand(holeIndex) {
+            const hand = document.getElementById('hand');
+            
+            if (STATE.currentPlayer === 1) {
+                hand.innerText = ICONS.p1.hand;
+            } else {
+                hand.innerText = STATE.gameMode === 'human' ? ICONS.p2_human.hand : ICONS.p2_cpu.hand;
+            }
+
+            const hole = document.getElementById(`hole-${holeIndex}`);
+            if (!hole) return;
+            hand.style.display = 'block';
+            const rect = hole.getBoundingClientRect();
+            const scrollX = window.scrollX || window.pageXOffset;
+            const scrollY = window.scrollY || window.pageYOffset;
+            const centerX = rect.left + rect.width / 2 + scrollX;
+            const centerY = rect.top + rect.height / 2 + scrollY;
+            const handSizeHalf = 28;
+            let targetX = centerX - handSizeHalf;
+            let targetY = centerY - handSizeHalf;
+
+            if (holeIndex >= 8 && holeIndex <= 15) {
+                targetY -= 20; 
+                hand.style.transform = `translate(${targetX}px, ${targetY}px) rotate(180deg) scale(1.2) translateZ(50px)`;
+            } else {
+                targetY -= 25;
+                hand.style.transform = `translate(${targetX}px, ${targetY}px) scale(1.2) translateZ(50px)`;
+            }
+            hand.style.zIndex = "9999";
+        }
+
+        function hideHand() { document.getElementById('hand').style.display = 'none'; }
+        function highlightHole(idx) {
+            const el = document.getElementById(`hole-${idx}`);
+            el.classList.add('popping');
+            setTimeout(() => el.classList.remove('popping'), 300);
+        }
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        function showMessage(title, htmlContent) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-content').innerHTML = htmlContent;
+            document.getElementById('modal-overlay').classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+        function showRules() {
+            const rules = `
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><b>Tujuan:</b> Mengumpulkan biji terbanyak.</li>
+                    <li><b>Bonus Sikap:</b> Jawab pertanyaan sikap sosial saat mendarat di lumbung atau saat menembak lawan.</li>
+                    <li><b>Selesai:</b> Jika giliranmu tiba tapi bijimu habis, permainan STOP dan dihitung jumlah biji terbanyak adalah pemenang nya.</li>
+                </ul>
+            `;
+            showMessage("Aturan Main", rules);
+        }
+    </script>
+</body>
+</html>
